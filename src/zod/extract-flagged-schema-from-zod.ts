@@ -28,7 +28,7 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
   base: ZodObject<T>,
   flags: Flags
 ): ZodObject<T> {
-  const newShape: ZodRawShape = {};
+  const newShape = {};
   for (const [key, fieldSchema] of Object.entries(base.shape)) {
     const meta: any = (fieldSchema as ZodTypeAny).meta?.() || {}
     // omit

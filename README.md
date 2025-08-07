@@ -228,6 +228,7 @@ const { visibilityMap } = useLDFlagSchema({
 ```tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 function UserFormWithValidation() {
   const flags = { "show-last-name": true, "disable-email": false };
@@ -246,7 +247,7 @@ function UserFormWithValidation() {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(transformedSchema), // Use transformed schema
+    resolver: zodResolver(transformedSchema as typeof userSchema),
   });
 
   const onSubmit = (data) => {
@@ -342,6 +343,33 @@ visibilityMap.email; // boolean
 
 // ❌ TypeScript error - property doesn't exist
 visibilityMap.invalidField; // Error: Property 'invalidField' does not exist
+```
+
+**Resolver Type Safety:**
+
+When using with form libraries, you can provide explicit typing to avoid type checking:
+
+```typescript
+import { useLDFlagSchema } from "launchdarkly-flag-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Define your schema
+const userSchema = z.object({
+  firstName: z.string(),
+  email: z.string(),
+});
+
+const { schema: transformedSchema } = useLDFlagSchema({
+  schema: userSchema,
+  flags,
+});
+
+// ✅ Simple type assertion - TypeScript knows it's a Zod schema
+const resolver = zodResolver(transformedSchema as typeof userSchema);
+
+// Or for Yup:
+// const resolver = yupResolver(transformedSchema as typeof userYupSchema);
 ```
 
 ### Meta Properties
@@ -456,7 +484,7 @@ function ReactHookFormZodExample() {
     formState: { errors, isSubmitting },
     watch,
   } = useForm({
-    resolver: zodResolver(transformedSchema),
+    resolver: zodResolver(transformedSchema as typeof userRegistrationSchema),
     mode: "onBlur",
   });
 
@@ -686,7 +714,7 @@ function ReactHookFormYupExample() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: yupResolver(transformedSchema),
+    resolver: yupResolver(transformedSchema as typeof userRegistrationSchema),
     mode: "onBlur",
   });
 

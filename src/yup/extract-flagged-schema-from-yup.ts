@@ -68,5 +68,5 @@ export function transformYupSchemaWithValues(
     Object.assign(newShape, { [key]: yupShape });
   }
 
-  return object().shape(newShape as Record<string, Schema<any>>);
+  return object().shape(newShape);
 }
