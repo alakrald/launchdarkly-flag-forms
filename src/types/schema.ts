@@ -8,9 +8,6 @@ export interface FlaggedFieldSchema {
   readonlyFlag?: string // controls readonly state
   requiredFlag?: string // controls required state
   omitFlag?: string // controls if the field should be omitted
-  minValueFlag?: string // controls min value
-  maxValueFlag?: string // controls max value
-  enumValuesFlag?: string // controls enum values
   defaultValueFlag?: string // controls default value
 }
 

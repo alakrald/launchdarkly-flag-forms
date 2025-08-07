@@ -12,6 +12,7 @@ A powerful React hook library for dynamic form control using feature flags. Tran
 - 🔧 **Schema Support**: Native Zod and Yup integration with automatic detection
 - 📦 **Lightweight**: Minimal bundle size with tree-shaking support
 - 🚫 **Zero Dependencies**: No LaunchDarkly SDK required - bring your own flags
+- 🎨 **Dynamic Defaults**: Control default values through feature flags
 
 ---
 
@@ -174,12 +175,10 @@ The library can dynamically transform your schema based on flag values:
 ```tsx
 const dynamicSchema = z.object({
   username: z.string().min(3).meta({
-    minValue: 5, // Dynamic min length
     requiredFlag: "username-required",
   }),
 
   role: z.enum(["user", "admin"]).meta({
-    enumValues: ["user", "admin", "moderator"], // Dynamic enum values
     flag: "show-role",
   }),
 
@@ -202,14 +201,16 @@ const { schema: transformedSchema, defaultValueMap } = useLDFlagSchema({
 });
 
 // transformedSchema is now modified based on flag values
-// - username has min length of 5 and is required
-// - role includes 'moderator' option
+// - username is required when flag is true
+// - role visibility controlled by flag
 // - theme defaults to 'dark' (from flag value)
 
 // defaultValueMap provides easy access to dynamic defaults
 console.log(defaultValueMap.theme); // "dark"
 console.log(defaultValueMap.username); // undefined (no defaultValueFlag)
 ```
+
+> **🚀 Coming Soon**: Advanced features like dynamic min/max values, dynamic enum options, and more schema transformations are planned for future releases.
 
 ### Override Flags
 
@@ -398,9 +399,6 @@ interface FieldMeta {
   omitFlag?: string; // Omits field from schema entirely
 
   // Dynamic values
-  minValue?: number; // Dynamic minimum value/length
-  maxValue?: number; // Dynamic maximum value/length
-  enumValues?: Array<any>; // Dynamic enum/select options
   defaultValue?: any; // Static default value
   defaultValueFlag?: string; // Flag to control dynamic default value
 
@@ -408,16 +406,6 @@ interface FieldMeta {
   label?: string; // Field label
 }
 ```
-
-### Flag Control Logic
-
-| Flag Type           | `true`       | `false`      | `undefined` |
-| ------------------- | ------------ | ------------ | ----------- |
-| `flag` (visibility) | Visible      | Hidden       | Visible     |
-| `disabledFlag`      | Enabled      | **Disabled** | Enabled     |
-| `readonlyFlag`      | **Readonly** | Editable     | Editable    |
-| `requiredFlag`      | **Required** | Optional     | Optional    |
-| `omitFlag`          | Included     | **Omitted**  | Included    |
 
 ---
 

@@ -7,7 +7,7 @@ export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
   zodSchema: ZodObject<T>
 ): FlaggedFieldSchema[] {
   const fields = Object.entries(zodSchema.shape).map(([name, schema]) => {
-    const meta = (schema as z.ZodTypeAny).meta() || {}
+    const meta = (schema as z.ZodTypeAny)?.meta?.() || {}
     return {
       name,
       visibilityFlag: meta.visibilityFlag,
@@ -31,7 +31,7 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
 ): ZodObject<T> {
   const newShape = {};
   for (const [key, fieldSchema] of Object.entries(base.shape)) {
-    const meta: any = (fieldSchema as ZodTypeAny).meta?.() || {}
+    const meta: any = (fieldSchema as ZodTypeAny)?.meta?.() || {}
     // omit
     if (meta.omitFlag && flags[meta.omitFlag as string]) {
       continue;
@@ -42,18 +42,6 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
       if (!flags[meta.requiredFlag as string]) {
         zodShape = (zodShape as any).optional();
       }
-    }
-    // min
-    if (meta.minValueFlag && !isNil(flags[meta.minValueFlag as string]) && 'min' in zodShape) {
-      zodShape = (zodShape as any).min(flags[meta.minValueFlag as string]);
-    }
-    // max
-    if (meta.maxValueFlag && !isNil(flags[meta.maxValueFlag as string]) && 'max' in zodShape) {
-      zodShape = (zodShape as any).max(flags[meta.maxValueFlag as string]);
-    }
-    // enum override
-    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string]) && 'enum' in zodShape) {
-      zodShape = (zodShape as any).enum(flags[meta.enumValuesFlag as string] as string[]);
     }
     // default override
     if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in zodShape) {

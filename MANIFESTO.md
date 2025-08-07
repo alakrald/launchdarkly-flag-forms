@@ -6,7 +6,7 @@ _Building the future of dynamic, user-centric form experiences_
 
 ---
 
-## 🎯 **Our Vision**
+## 🎯 **Vision**
 
 In a world where user experience is paramount and personalization is expected, forms should adapt, evolve, and respond to the unique needs of every user. **We believe forms are not static entities** – they are living, breathing interfaces that should transform based on user context, business logic, and real-time decisions.
 
@@ -154,7 +154,6 @@ LaunchDarkly has revolutionized how we think about feature deployment and user e
 Every LaunchDarkly customer becomes capable of:
 
 - **10x faster** form iteration cycles
-- **50% higher** form completion rates through personalization
 - **Zero downtime** form deployments
 - **Instant rollback** capabilities for form changes
 - **Advanced targeting** for form experiences
@@ -261,7 +260,6 @@ Stop being constrained by rigid forms. Start delivering personalized experiences
 - Users never see irrelevant inputs or overwhelming interfaces
 - A/B testing form layouts takes minutes, not months
 - Form experiences adapt in real-time to user behavior
-- Conversion optimization happens continuously, automatically
 - Forms become a competitive advantage, not a pain point
 
 **This isn't science fiction. This is Flag-Form.**
@@ -284,7 +282,6 @@ A future where forms are:
 
 ---
 
-_Built with ❤️ for the LaunchDarkly Hackathon_  
-_By developers who believe user experience should be dynamic, personal, and powerful_
+_Built with ❤️ for the LaunchDarkly Hackathon_
 
 **🚀 Ready to transform your forms? Get started with Flag-Form today.**
