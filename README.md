@@ -8,7 +8,7 @@ A powerful React hook library for dynamic form control using feature flags. Tran
 - 🔄 **Dynamic Schema Transformation**: Real-time schema modification based on flag values
 - 🛡️ **Type-safe**: Full TypeScript support with Zod and Yup schemas
 - ⚡ **Multiple Control Types**: Visibility, disabled state, readonly, required validation
-- 🎯 **Framework Agnostic**: Works with any form library (React Hook Form, Formik, etc.)
+- 🎯 **Framework Agnostic**: Works with any form library (React Hook Form, TanStack Form, etc.)
 - 🔧 **Schema Support**: Native Zod and Yup integration with automatic detection
 - 📦 **Lightweight**: Minimal bundle size with tree-shaking support
 - 🚫 **Zero Dependencies**: No LaunchDarkly SDK required - bring your own flags
@@ -321,7 +321,7 @@ type FlagValue =
 
 ### Meta Properties
 
-Add these properties to your schema field's `.meta()` to enable flag control:
+Define flag control in your schema using the `.meta()` method:
 
 ```typescript
 interface FieldMeta {
@@ -1324,9 +1324,9 @@ const envFlags = {
 
 ---
 
-## 🔄 LaunchDarkly Integration
+## 🔗 Integration Examples
 
-While this library doesn't depend on LaunchDarkly's SDK, it integrates seamlessly:
+### LaunchDarkly SDK
 
 ```tsx
 import { useFlags } from "@launchdarkly/react-client-sdk";
@@ -1339,28 +1339,20 @@ function LaunchDarklyForm() {
     flags: ldFlags,
   });
 
-  // Your form logic here
+  // Your form JSX...
 }
 ```
 
-### Other Flag Providers
-
-Works with any flag system:
+### Environment Variables
 
 ```tsx
-// Custom flag provider
-const customFlags = useCustomFlags();
-
 // Environment variables
 const envFlags = {
   "feature-a": process.env.REACT_APP_FEATURE_A === "true",
 };
 
-// Context/state management
-const contextFlags = useContext(FeatureFlagContext);
-
-// All work the same way
-const result = useLDFlagSchema({ schema, flags: anyFlagSource });
+// State management
+const [flags, setFlags] = useState(getInitialFlags());
 ```
 
 ---
@@ -1369,9 +1361,9 @@ const result = useLDFlagSchema({ schema, flags: anyFlagSource });
 
 ### Schema Detection
 
-The library automatically detects whether you're using Zod or Yup:
+The library automatically detects your schema type:
 
-```typescript
+```tsx
 // Automatic detection
 const { schema } = useLDFlagSchema({
   schema: zodSchema, // Detected as 'zod'
@@ -1384,74 +1376,44 @@ const { schema } = useLDFlagSchema({
 });
 ```
 
-### Transformation Pipeline
+### Performance Optimizations
 
-1. **Schema Analysis**: Extract metadata from schema fields
-2. **Flag Processing**: Apply flag values to field controls
-3. **Schema Transformation**: Create new schema with dynamic values
-4. **State Mapping**: Generate control maps for UI rendering
-
-### Performance
-
-- **Memoized**: All computations are memoized for optimal performance
-- **Selective Updates**: Only re-compute when schema or flags change
+- **Memoization**: All computations are memoized with `useMemo`
 - **Tree Shaking**: Unused code is automatically removed
 - **Type Safe**: Full TypeScript inference with no runtime overhead
 
 ---
 
-## 🔧 Development
+## 🧪 Contributing
 
-### Build Commands
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/launchdarkly/flag-form.git
+
+# Install dependencies
+npm install
+
+# Run tests
+npm run test
+
 # Build the library
 npm run build
-
-# Type checking
-npm run type-check
-
-# Clean build artifacts
-npm run clean
 ```
-
-### Project Structure
-
-```
-src/
-├── hooks/
-│   └── use-ld-flag-schema.ts    # Main hook implementation
-├── types/
-│   └── schema.ts                # TypeScript definitions
-├── utils/
-│   └── index.ts                 # Utility functions
-├── zod/
-│   └── extract-flagged-schema-from-zod.ts
-└── yup/
-    └── extract-flagged-schema-from-yup.ts
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please:
-
-1. **Maintain Compatibility**: Ensure changes work with both Zod and Yup
-2. **Add Tests**: Include comprehensive test coverage
-3. **Type Safety**: Maintain full TypeScript support
-4. **Documentation**: Update README and add examples
 
 ---
 
 ## 📄 License
 
-MIT © Alec Aldrine Lakra
+MIT © [LaunchDarkly](https://launchdarkly.com)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [LaunchDarkly](https://launchdarkly.com/) for pioneering feature flag-driven development
+- [LaunchDarkly](https://launchdarkly.com/) for feature flag management
 - [Zod](https://zod.dev/) and [Yup](https://github.com/jquense/yup) for excellent schema validation
 - [React](https://react.dev/) for the amazing hooks ecosystem
