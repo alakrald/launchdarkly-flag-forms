@@ -314,12 +314,34 @@ type FlagValue =
 
 ```typescript
 {
-  visibilityMap: Record<string, boolean>; // Field visibility states
-  disabledMap: Record<string, boolean>; // Field disabled states
-  readOnlyMap: Record<string, boolean>; // Field readonly states
-  requiredMap: Record<string, boolean>; // Field required states
-  schema: TransformedSchema; // Dynamically modified schema
+  visibilityMap: Record<SchemaKeys<T>, boolean>; // Field visibility states
+  disabledMap: Record<SchemaKeys<T>, boolean>; // Field disabled states
+  readOnlyMap: Record<SchemaKeys<T>, boolean>; // Field readonly states
+  requiredMap: Record<SchemaKeys<T>, boolean>; // Field required states
+  schema: T; // Dynamically modified schema
 }
+```
+
+Where `SchemaKeys<T>` extracts the actual field names from your schema for full type safety.
+
+**Type Safety Benefits:**
+
+```typescript
+const userSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+});
+
+const { visibilityMap } = useLDFlagSchema({ schema: userSchema, flags: {} });
+
+// ✅ TypeScript knows these exist
+visibilityMap.firstName; // boolean
+visibilityMap.lastName; // boolean
+visibilityMap.email; // boolean
+
+// ❌ TypeScript error - property doesn't exist
+visibilityMap.invalidField; // Error: Property 'invalidField' does not exist
 ```
 
 ### Meta Properties

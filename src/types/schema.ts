@@ -19,8 +19,26 @@ export type SchemaType = 'zod' | 'yup'
 export type FlagValue = boolean | number | Date | string | undefined | null | Array<unknown>
 export type Flags = Record<string, FlagValue>
 
-export type UseFlaggedSchemaParams = {
-    schema: ZodObject<ZodRawShape> | AnyObjectSchema,
+export type UseFlaggedSchemaParams<T extends ZodObject<ZodRawShape> | AnyObjectSchema = ZodObject<ZodRawShape> | AnyObjectSchema> = {
+    schema: T,
     flags: Flags,
-    overrideFlags?: Record<string, boolean>
+    overrideFlags?: Flags
+}
+
+// Extract schema keys type helper
+export type SchemaKeys<T> = T extends ZodObject<infer R> 
+  ? keyof R 
+  : T extends AnyObjectSchema 
+    ? T extends { fields: infer F } 
+      ? keyof F 
+      : string
+    : string
+
+// Return type for the hook with proper key typing
+export type UseFlaggedSchemaReturn<T extends ZodObject<ZodRawShape> | AnyObjectSchema> = {
+  visibilityMap: Record<SchemaKeys<T>, boolean>
+  disabledMap: Record<SchemaKeys<T>, boolean>
+  readOnlyMap: Record<SchemaKeys<T>, boolean>
+  requiredMap: Record<SchemaKeys<T>, boolean>
+  schema: T
 }
