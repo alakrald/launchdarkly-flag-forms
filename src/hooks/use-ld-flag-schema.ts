@@ -66,11 +66,19 @@ export const useLDFlagSchema = <T extends ZodObject<ZodRawShape> | AnyObjectSche
       ])
     ) as UseFlaggedSchemaReturn<T>['requiredMap']
 
+    const defaultValueMap = Object.fromEntries(
+      fields.map(field => [
+        field.name,
+        field.defaultValueFlag ? updatedFlags[field.defaultValueFlag] : undefined
+      ])
+    ) as UseFlaggedSchemaReturn<T>['defaultValueMap']
+
     return {
       visibilityMap,
       disabledMap,
       readOnlyMap,
       requiredMap,
+      defaultValueMap,
       schema: transformedSchema as T
     }
 

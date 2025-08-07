@@ -40,5 +40,6 @@ export type UseFlaggedSchemaReturn<T extends ZodObject<ZodRawShape> | AnyObjectS
   disabledMap: Record<SchemaKeys<T>, boolean>
   readOnlyMap: Record<SchemaKeys<T>, boolean>
   requiredMap: Record<SchemaKeys<T>, boolean>
+  defaultValueMap: Record<SchemaKeys<T>, any>
   schema: T
 }

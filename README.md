@@ -183,21 +183,20 @@ const dynamicSchema = z.object({
     flag: "show-role",
   }),
 
-  settings: z.object({
-    theme: z.string().meta({
-      defaultValue: "dark", // Dynamic default value
-      omitFlag: "hide-settings",
-    }),
+  theme: z.string().meta({
+    defaultValueFlag: "default-theme", // Dynamic default value from flag
+    omitFlag: "hide-theme",
   }),
 });
 
 const flags = {
   "username-required": true,
   "show-role": true,
-  "hide-settings": false,
+  "hide-theme": false,
+  "default-theme": "dark", // This becomes the default value
 };
 
-const { schema: transformedSchema } = useLDFlagSchema({
+const { schema: transformedSchema, defaultValueMap } = useLDFlagSchema({
   schema: dynamicSchema,
   flags,
 });
@@ -205,7 +204,11 @@ const { schema: transformedSchema } = useLDFlagSchema({
 // transformedSchema is now modified based on flag values
 // - username has min length of 5 and is required
 // - role includes 'moderator' option
-// - settings.theme defaults to 'dark'
+// - theme defaults to 'dark' (from flag value)
+
+// defaultValueMap provides easy access to dynamic defaults
+console.log(defaultValueMap.theme); // "dark"
+console.log(defaultValueMap.username); // undefined (no defaultValueFlag)
 ```
 
 ### Override Flags
@@ -319,6 +322,7 @@ type FlagValue =
   disabledMap: Record<SchemaKeys<T>, boolean>; // Field disabled states
   readOnlyMap: Record<SchemaKeys<T>, boolean>; // Field readonly states
   requiredMap: Record<SchemaKeys<T>, boolean>; // Field required states
+  defaultValueMap: Record<SchemaKeys<T>, any>; // Dynamic default values
   schema: T; // Dynamically modified schema
 }
 ```
@@ -334,15 +338,23 @@ const userSchema = z.object({
   email: z.string(),
 });
 
-const { visibilityMap } = useLDFlagSchema({ schema: userSchema, flags: {} });
+const { visibilityMap, defaultValueMap } = useLDFlagSchema({
+  schema: userSchema,
+  flags: {},
+});
 
 // ✅ TypeScript knows these exist
 visibilityMap.firstName; // boolean
 visibilityMap.lastName; // boolean
 visibilityMap.email; // boolean
 
+defaultValueMap.firstName; // any (dynamic default value)
+defaultValueMap.lastName; // any
+defaultValueMap.email; // any
+
 // ❌ TypeScript error - property doesn't exist
 visibilityMap.invalidField; // Error: Property 'invalidField' does not exist
+defaultValueMap.invalidField; // Error: Property 'invalidField' does not exist
 ```
 
 **Resolver Type Safety:**
@@ -389,7 +401,8 @@ interface FieldMeta {
   minValue?: number; // Dynamic minimum value/length
   maxValue?: number; // Dynamic maximum value/length
   enumValues?: Array<any>; // Dynamic enum/select options
-  defaultValue?: any; // Dynamic default value
+  defaultValue?: any; // Static default value
+  defaultValueFlag?: string; // Flag to control dynamic default value
 
   // Display properties
   label?: string; // Field label
@@ -472,6 +485,7 @@ function ReactHookFormZodExample() {
     visibilityMap,
     disabledMap,
     readOnlyMap,
+    defaultValueMap,
     schema: transformedSchema,
   } = useLDFlagSchema({
     schema: userRegistrationSchema,
@@ -485,6 +499,9 @@ function ReactHookFormZodExample() {
     watch,
   } = useForm({
     resolver: zodResolver(transformedSchema as typeof userRegistrationSchema),
+    defaultValues: {
+      newsletter: defaultValueMap.newsletter ?? false, // Use dynamic default
+    },
     mode: "onBlur",
   });
 
@@ -1334,6 +1351,46 @@ npm install @tanstack/react-form @tanstack/yup-form-adapter yup launchdarkly-fla
 ---
 
 ## 🎯 Use Cases
+
+### Dynamic Default Values
+
+Control form defaults based on user context, preferences, or experiments:
+
+```tsx
+const preferencesSchema = z.object({
+  theme: z.string().meta({
+    defaultValueFlag: "user-preferred-theme", // User's saved preference
+  }),
+
+  language: z.string().meta({
+    defaultValueFlag: "user-locale", // Based on user location
+  }),
+
+  notifications: z.boolean().meta({
+    defaultValueFlag: "notifications-enabled", // A/B test default
+  }),
+});
+
+const userFlags = {
+  "user-preferred-theme": user.savedTheme || "light",
+  "user-locale": user.detectedLocale || "en",
+  "notifications-enabled": experimentVariant === "opt-in" ? true : false,
+};
+
+const { defaultValueMap } = useLDFlagSchema({
+  schema: preferencesSchema,
+  flags: userFlags,
+});
+
+// Use in React Hook Form
+const { register } = useForm({
+  defaultValues: {
+    theme: defaultValueMap.theme,
+    language: defaultValueMap.language,
+    notifications: defaultValueMap.notifications,
+  },
+});
+```
 
 ### A/B Testing Forms
 

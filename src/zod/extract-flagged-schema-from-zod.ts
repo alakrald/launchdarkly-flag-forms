@@ -14,6 +14,7 @@ export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
+      defaultValueFlag: meta.defaultValueFlag,
     } as FlaggedFieldSchema;
   });
 
