@@ -15,8 +15,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "jsx": "react-jsx",
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "tests/**/*", "vitest.config.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
