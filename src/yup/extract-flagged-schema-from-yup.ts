@@ -14,7 +14,7 @@ export function extractFlaggedSchemaFromYup(
         : {};
     return {
       name,
-      visibilityFlag: meta.flag,
+      visibilityFlag: meta.visibilityFlag,
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,

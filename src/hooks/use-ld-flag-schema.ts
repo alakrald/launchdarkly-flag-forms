@@ -48,7 +48,7 @@ export const useLDFlagSchema = <T extends ZodObject<ZodRawShape> | AnyObjectSche
     const disabledMap = Object.fromEntries(
       fields.map(field => [
         field.name,
-        field.disabledFlag ? !updatedFlags[field.disabledFlag] : false
+        field.disabledFlag ? !!updatedFlags[field.disabledFlag] : false
       ])
     ) as UseFlaggedSchemaReturn<T>['disabledMap']
   
@@ -62,7 +62,7 @@ export const useLDFlagSchema = <T extends ZodObject<ZodRawShape> | AnyObjectSche
     const requiredMap = Object.fromEntries(
       fields.map(field => [
         field.name,
-        field.requiredFlag ? !updatedFlags[field.requiredFlag] : false
+        field.requiredFlag ? !!updatedFlags[field.requiredFlag] : false
       ])
     ) as UseFlaggedSchemaReturn<T>['requiredMap']
 

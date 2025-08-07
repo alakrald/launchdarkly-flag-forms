@@ -10,7 +10,7 @@ export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
     const meta = (schema as z.ZodTypeAny).meta() || {}
     return {
       name,
-      visibilityFlag: meta.flag,
+      visibilityFlag: meta.visibilityFlag,
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
