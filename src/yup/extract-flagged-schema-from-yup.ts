@@ -18,10 +18,6 @@ export function extractFlaggedSchemaFromYup(
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
-      minValue: meta.minValue,
-      maxValue: meta.maxValue,
-      enumValues: meta.enumValues,
-      defaultValue: meta.defaultValue
     } as FlaggedFieldSchema;
   });
 
@@ -53,16 +49,16 @@ export function transformYupSchemaWithValues(
       yupShape = flags[meta.requiredFlag] ? yupShape.required() : yupShape.notRequired()
     }
     // min
-    if (!isNil(meta.minValue) && typeof (yupShape as any).min === 'function') {
-      yupShape = (yupShape as any).min(meta.minValue)
+    if (meta.minValueFlag && !isNil(flags[meta.minValueFlag as string]) && typeof (yupShape as any).min === 'function') {
+      yupShape = (yupShape as any).min(flags[meta.minValueFlag as string])
     }
     // max
-    if (!isNil(meta.maxValue) && typeof (yupShape as any).max === 'function') {
-      yupShape = (yupShape as any).max(meta.maxValue)
+    if (meta.maxValueFlag && !isNil(flags[meta.maxValueFlag as string]) && typeof (yupShape as any).max === 'function') {
+      yupShape = (yupShape as any).max(flags[meta.maxValueFlag as string])
     }
     // enum override (oneOf)
-    if (Array.isArray(meta.enumValues)) {
-      yupShape = (yupShape as any).oneOf(meta.enumValues)
+    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string])) {
+      yupShape = (yupShape as any).oneOf(flags[meta.enumValuesFlag as string])
     }
     // default override
     if (!isNil(meta.defaultValue)) {

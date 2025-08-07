@@ -1,15 +1,17 @@
 # 🏁 @launchdarkly/flag-form
 
-A minimal React hook-based library to control form field visibility and state using feature flags — with seamless Zod and Yup integration.
+A powerful React hook library for dynamic form control using feature flags. Transform your forms with real-time field visibility, validation, and behavior based on feature flag values.
 
 ## ✨ Features
 
-- ⚙️ **Framework-agnostic**: Works with React Hook Form, TanStack Form, or any form library
-- 🚫 **Zero LaunchDarkly dependencies**: Bring your own feature flag provider
-- 🛡️ **Type-safe**: Full TypeScript support with schema validation
-- 🎯 **Minimal footprint**: Purely logic-focused, no UI components
-- 📦 **Schema extraction**: Automatically extract flagged schemas from Zod and Yup
-- 🔧 **Flexible**: Support for visibility flags and disabled state flags
+- 🚀 **React Hook-based**: Simple `useLDFlagSchema` hook for seamless integration
+- 🔄 **Dynamic Schema Transformation**: Real-time schema modification based on flag values
+- 🛡️ **Type-safe**: Full TypeScript support with Zod and Yup schemas
+- ⚡ **Multiple Control Types**: Visibility, disabled state, readonly, required validation
+- 🎯 **Framework Agnostic**: Works with any form library (React Hook Form, Formik, etc.)
+- 🔧 **Schema Support**: Native Zod and Yup integration with automatic detection
+- 📦 **Lightweight**: Minimal bundle size with tree-shaking support
+- 🚫 **Zero Dependencies**: No LaunchDarkly SDK required - bring your own flags
 
 ---
 
@@ -25,120 +27,254 @@ pnpm add @launchdarkly/flag-form
 
 ### Peer Dependencies
 
-This library has peer dependencies on React and optionally Zod/Yup:
-
 ```bash
+# Required
 npm install react react-dom
-# For Zod support
-npm install zod
-# For Yup support
-npm install yup
+
+# Choose your schema library
+npm install zod        # For Zod schemas
+npm install yup        # For Yup schemas
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### With Zod Schema
+### Basic Example with Zod
 
 ```tsx
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import React from "react";
 import { z } from "zod";
+import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-// Define your Zod schema with metadata
+// Define schema with flag metadata
 const userSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required").meta({
-    flag: "show-last-name",
+  firstName: z.string().min(1, "Required"),
+
+  lastName: z.string().min(1, "Required").meta({
+    flag: "show-last-name", // Visibility flag
     label: "Last Name",
   }),
-  email: z.email("Invalid email").meta({
-    disabledFlag: "disable-email-editing",
+
+  email: z.string().email().meta({
+    disabledFlag: "disable-email", // Disabled state flag
     label: "Email Address",
   }),
+
   phone: z.string().optional().meta({
-    flag: "show-phone-field",
+    flag: "show-phone",
+    readonlyFlag: "readonly-phone", // Readonly state flag
     label: "Phone Number",
-    type: "tel",
   }),
 });
 
-function MyForm() {
-  // Your feature flags from any provider
+function UserForm() {
+  // Your feature flags from any source
   const flags = {
     "show-last-name": true,
-    "show-phone-field": false,
-    "disable-email-editing": false,
+    "disable-email": false,
+    "show-phone": true,
+    "readonly-phone": false,
   };
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "zod",
+  const {
+    visibilityMap,
+    disabledMap,
+    readOnlyMap,
+    requiredMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
     schema: userSchema,
     flags,
   });
 
   return (
     <form>
-      {visibleFields.map((field) => (
-        <div key={field.name}>
-          <label>{field.label}</label>
-          <input
-            type={field.type}
-            name={field.name}
-            disabled={disabledMap[field.name]}
-            required={field.validation?.required}
-          />
-        </div>
-      ))}
+      {/* First name - always visible */}
+      <input
+        name="firstName"
+        placeholder="First Name"
+        required={requiredMap.firstName}
+      />
+
+      {/* Last name - controlled by flag */}
+      {visibilityMap.lastName && (
+        <input
+          name="lastName"
+          placeholder="Last Name"
+          disabled={disabledMap.lastName}
+          readOnly={readOnlyMap.lastName}
+          required={requiredMap.lastName}
+        />
+      )}
+
+      {/* Email - can be disabled by flag */}
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        disabled={disabledMap.email}
+        readOnly={readOnlyMap.email}
+        required={requiredMap.email}
+      />
+
+      {/* Phone - multiple flag controls */}
+      {visibilityMap.phone && (
+        <input
+          name="phone"
+          placeholder="Phone"
+          disabled={disabledMap.phone}
+          readOnly={readOnlyMap.phone}
+          required={requiredMap.phone}
+        />
+      )}
     </form>
   );
 }
 ```
 
-### With Yup Schema
+### Basic Example with Yup
 
 ```tsx
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
 import * as yup from "yup";
+import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-// Define your Yup schema with metadata
 const userSchema = yup.object({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().required("Last name is required").meta({
+  firstName: yup.string().required("Required"),
+
+  lastName: yup.string().required("Required").meta({
     flag: "show-last-name",
     label: "Last Name",
   }),
-  email: yup.string().email("Invalid email").required().meta({
-    disabledFlag: "disable-email-editing",
+
+  email: yup.string().email().required().meta({
+    disabledFlag: "disable-email",
     label: "Email Address",
   }),
 });
 
-function MyForm() {
-  const flags = {
-    "show-last-name": true,
-    "disable-email-editing": false,
-  };
+// Usage is identical to Zod example
+const { visibilityMap, disabledMap, schema } = useLDFlagSchema({
+  schema: userSchema,
+  flags: yourFlags,
+});
+```
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "yup",
+---
+
+## 🔧 Advanced Features
+
+### Dynamic Schema Transformation
+
+The library can dynamically transform your schema based on flag values:
+
+```tsx
+const dynamicSchema = z.object({
+  username: z.string().min(3).meta({
+    minValue: 5, // Dynamic min length
+    requiredFlag: "username-required",
+  }),
+
+  role: z.enum(["user", "admin"]).meta({
+    enumValues: ["user", "admin", "moderator"], // Dynamic enum values
+    flag: "show-role",
+  }),
+
+  settings: z.object({
+    theme: z.string().meta({
+      defaultValue: "dark", // Dynamic default value
+      omitFlag: "hide-settings",
+    }),
+  }),
+});
+
+const flags = {
+  "username-required": true,
+  "show-role": true,
+  "hide-settings": false,
+};
+
+const { schema: transformedSchema } = useLDFlagSchema({
+  schema: dynamicSchema,
+  flags,
+});
+
+// transformedSchema is now modified based on flag values
+// - username has min length of 5 and is required
+// - role includes 'moderator' option
+// - settings.theme defaults to 'dark'
+```
+
+### Override Flags
+
+Provide temporary flag overrides without modifying your main flags object:
+
+```tsx
+const { visibilityMap } = useLDFlagSchema({
+  schema: userSchema,
+  flags: globalFlags,
+  overrideFlags: {
+    "show-advanced-fields": true, // Temporary override
+    "disable-editing": false, // Override for development
+  },
+});
+```
+
+### React Hook Form Integration
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+function UserFormWithValidation() {
+  const flags = { "show-last-name": true, "disable-email": false };
+
+  const {
+    visibilityMap,
+    disabledMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
     schema: userSchema,
     flags,
   });
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(transformedSchema), // Use transformed schema
+  });
+
+  const onSubmit = (data) => {
+    console.log("Form data:", data);
+  };
+
   return (
-    <form>
-      {visibleFields.map((field) => (
-        <div key={field.name}>
-          <label>{field.label}</label>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {visibilityMap.firstName && (
+        <div>
           <input
-            type={field.type}
-            name={field.name}
-            disabled={disabledMap[field.name]}
-            required={field.validation?.required}
+            {...register("firstName")}
+            disabled={disabledMap.firstName}
+            placeholder="First Name"
           />
+          {errors.firstName && <span>{errors.firstName.message}</span>}
         </div>
-      ))}
+      )}
+
+      {visibilityMap.lastName && (
+        <div>
+          <input
+            {...register("lastName")}
+            disabled={disabledMap.lastName}
+            placeholder="Last Name"
+          />
+          {errors.lastName && <span>{errors.lastName.message}</span>}
+        </div>
+      )}
+
+      <button type="submit">Submit</button>
     </form>
   );
 }
@@ -146,397 +282,489 @@ function MyForm() {
 
 ---
 
-## 📖 Implementation Details
+## 📖 API Reference
 
-### Core Hook: `useLDFlagSchema`
+### `useLDFlagSchema(params)`
 
-The main hook that processes Zod/Yup schemas with feature flags to determine field visibility and disabled states.
-
-**Signature:**
-
-```typescript
-useLDFlagSchema(params: UseFlaggedSchemaParams) => {
-  visibleFields: FlaggedFieldSchema[];
-  disabledMap: Record<string, boolean>;
-}
-```
+The main hook for dynamic form control.
 
 **Parameters:**
 
-The hook accepts a union type parameter that varies based on schema type:
-
 ```typescript
-// For Zod schemas
-{
-  schemaType: "zod";
-  schema: ZodObject<ZodRawShape>;
-  flags: Record<string, boolean>;
+interface UseFlaggedSchemaParams {
+  schema: ZodObject<ZodRawShape> | AnyObjectSchema; // Zod or Yup schema
+  flags: Record<string, FlagValue>; // Your feature flags
+  overrideFlags?: Record<string, boolean>; // Optional flag overrides
 }
 
-// For Yup schemas
-{
-  schemaType: "yup";
-  schema: AnyObjectSchema;
-  flags: Record<string, boolean>;
-}
+type FlagValue =
+  | boolean
+  | number
+  | Date
+  | string
+  | undefined
+  | null
+  | Array<unknown>;
 ```
 
 **Returns:**
 
-- `visibleFields`: Array of fields that should be rendered (based on flag visibility)
-- `disabledMap`: Object mapping field names to their disabled state
-
-### Schema Processing Flow
-
-1. **Schema Type Detection**: The hook determines whether you're using Zod or Yup
-2. **Metadata Extraction**: Extracts flagging metadata from schema field definitions
-3. **Flag Processing**: Applies visibility and disabled state logic based on current flag values
-4. **Field Filtering**: Returns only visible fields and disabled state mapping
-
-### Field Visibility Logic
-
-Fields are visible by default. A field becomes hidden when:
-
-1. It has a `flag` property defined in its metadata, AND
-2. The corresponding flag value is `false` or `undefined`
-
 ```typescript
-// Field is visible if no flag is specified OR flag is true
-const isVisible = field.flag ? flags[field.flag] : true;
-```
-
-### Field Disabled State Logic
-
-Fields are enabled by default. A field becomes disabled when:
-
-1. It has a `disabledFlag` property defined in its metadata, AND
-2. The corresponding flag value is `false` (inverted logic)
-
-```typescript
-// Field is disabled when disabledFlag exists and is false
-const isDisabled = field.disabledFlag ? !flags[field.disabledFlag] : false;
-```
-
-### Schema Metadata Format
-
-Both Zod and Yup schemas support metadata through the `.meta()` method:
-
-```typescript
-// Metadata interface
-interface FieldMetadata {
-  flag?: string; // Feature flag name controlling visibility
-  disabledFlag?: string; // Feature flag name controlling disabled state
-  label?: string; // Display label for the field
-  type?: FieldType; // HTML input type
-  options?: string[]; // For select fields
-  defaultValue?: any; // Default field value
+{
+  visibilityMap: Record<string, boolean>; // Field visibility states
+  disabledMap: Record<string, boolean>; // Field disabled states
+  readOnlyMap: Record<string, boolean>; // Field readonly states
+  requiredMap: Record<string, boolean>; // Field required states
+  schema: TransformedSchema; // Dynamically modified schema
 }
 ```
 
-### Supported Field Types
+### Meta Properties
+
+Add these properties to your schema field's `.meta()` to enable flag control:
 
 ```typescript
-type FieldType =
-  | "text"
-  | "email"
-  | "number"
-  | "checkbox"
-  | "select"
-  | "textarea"
-  | "password"
-  | "radio"
-  | "date"
-  | "datetime-local"
-  | "time"
-  | "url"
-  | "tel"
-  | "file"
-  | "search"
-  | "range"
-  | "color";
+interface FieldMeta {
+  // Control flags
+  flag?: string; // Controls field visibility
+  disabledFlag?: string; // Controls disabled state
+  readonlyFlag?: string; // Controls readonly state
+  requiredFlag?: string; // Controls required validation
+  omitFlag?: string; // Omits field from schema entirely
+
+  // Dynamic values
+  minValue?: number; // Dynamic minimum value/length
+  maxValue?: number; // Dynamic maximum value/length
+  enumValues?: Array<any>; // Dynamic enum/select options
+  defaultValue?: any; // Dynamic default value
+
+  // Display properties
+  label?: string; // Field label
+}
 ```
+
+### Flag Control Logic
+
+| Flag Type           | `true`       | `false`      | `undefined` |
+| ------------------- | ------------ | ------------ | ----------- |
+| `flag` (visibility) | Visible      | Hidden       | Visible     |
+| `disabledFlag`      | Enabled      | **Disabled** | Enabled     |
+| `readonlyFlag`      | **Readonly** | Editable     | Editable    |
+| `requiredFlag`      | **Required** | Optional     | Optional    |
+| `omitFlag`          | Included     | **Omitted**  | Included    |
 
 ---
 
-## 💡 Usage Examples
+## 📚 Framework Integration Examples
 
-### React Hook Form + Zod Integration
+### React Hook Form + Zod
 
-```bash
-npm install react-hook-form @hookform/resolvers zod @launchdarkly/flag-form
-```
+Complete example with form validation and flag-controlled fields:
 
 ```tsx
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-const userSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required").meta({
+// Define schema with comprehensive flag controls
+const userRegistrationSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+
+  lastName: z.string().min(2, "Last name must be at least 2 characters").meta({
     flag: "show-last-name",
     label: "Last Name",
   }),
-  email: z.email("Invalid email").meta({
+
+  email: z.string().email("Invalid email address").meta({
     disabledFlag: "disable-email-editing",
     label: "Email Address",
   }),
-  role: z
-    .enum(["Developer", "Designer", "Manager", "Other"])
+
+  phone: z
+    .string()
+    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .optional()
     .meta({
-      flag: "show-role-field",
-      label: "Role",
-      type: "select",
-      options: ["Developer", "Designer", "Manager", "Other"],
+      flag: "show-phone-field",
+      readonlyFlag: "readonly-phone",
+      label: "Phone Number",
     }),
+
+  role: z.enum(["Developer", "Designer", "Manager", "Other"]).meta({
+    flag: "show-role-field",
+    enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"], // Dynamic options
+    label: "Role",
+  }),
+
+  newsletter: z.boolean().optional().meta({
+    flag: "show-newsletter-opt-in",
+    defaultValue: true,
+    label: "Subscribe to Newsletter",
+  }),
 });
 
-function UserForm() {
+function ReactHookFormZodExample() {
   const flags = {
     "show-last-name": true,
-    "show-role-field": true,
     "disable-email-editing": false,
+    "show-phone-field": true,
+    "readonly-phone": false,
+    "show-role-field": true,
+    "show-newsletter-opt-in": true,
   };
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "zod",
-    schema: userSchema,
+  const {
+    visibilityMap,
+    disabledMap,
+    readOnlyMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
+    schema: userRegistrationSchema,
     flags,
   });
-
-  // Create dynamic schema for only visible fields
-  const dynamicSchema = z.object(
-    Object.fromEntries(
-      visibleFields.map((field) => [
-        field.name,
-        userSchema.shape[field.name as keyof typeof userSchema.shape],
-      ])
-    )
-  );
-
-  type FormData = z.infer<typeof dynamicSchema>;
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(dynamicSchema),
+    watch,
+  } = useForm({
+    resolver: zodResolver(transformedSchema),
+    mode: "onBlur",
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data) => {
     console.log("Form submitted:", data);
+    // Handle form submission
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {visibleFields.map((field) => (
-        <div key={field.name}>
-          <label htmlFor={field.name}>
-            {field.label}
-            {field.validation?.required && (
-              <span className="text-red-500">*</span>
-            )}
+      {/* First Name - Always visible */}
+      <div>
+        <label htmlFor="firstName" className="block text-sm font-medium">
+          First Name *
+        </label>
+        <input
+          id="firstName"
+          {...register("firstName")}
+          type="text"
+          className="mt-1 block w-full rounded-md border-gray-300"
+          placeholder="Enter first name"
+        />
+        {errors.firstName && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.firstName.message}
+          </p>
+        )}
+      </div>
+
+      {/* Last Name - Flag controlled visibility */}
+      {visibilityMap.lastName && (
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium">
+            Last Name *
           </label>
-
-          {field.type === "select" ? (
-            <select
-              id={field.name}
-              {...register(field.name)}
-              disabled={disabledMap[field.name]}
-            >
-              <option value="">Select {field.label}</option>
-              {field.options?.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              id={field.name}
-              type={field.type}
-              {...register(field.name)}
-              disabled={disabledMap[field.name]}
-            />
-          )}
-
-          {errors[field.name] && (
-            <p className="text-red-500">{errors[field.name]?.message}</p>
+          <input
+            id="lastName"
+            {...register("lastName")}
+            type="text"
+            disabled={disabledMap.lastName}
+            readOnly={readOnlyMap.lastName}
+            className="mt-1 block w-full rounded-md border-gray-300"
+            placeholder="Enter last name"
+          />
+          {errors.lastName && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.lastName.message}
+            </p>
           )}
         </div>
-      ))}
+      )}
 
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Submit"}
+      {/* Email - Can be disabled */}
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium">
+          Email *
+        </label>
+        <input
+          id="email"
+          {...register("email")}
+          type="email"
+          disabled={disabledMap.email}
+          readOnly={readOnlyMap.email}
+          className="mt-1 block w-full rounded-md border-gray-300"
+          placeholder="Enter email address"
+        />
+        {errors.email && (
+          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+        )}
+      </div>
+
+      {/* Phone - Multiple controls */}
+      {visibilityMap.phone && (
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium">
+            Phone Number
+          </label>
+          <input
+            id="phone"
+            {...register("phone")}
+            type="tel"
+            disabled={disabledMap.phone}
+            readOnly={readOnlyMap.phone}
+            className="mt-1 block w-full rounded-md border-gray-300"
+            placeholder="+1234567890"
+          />
+          {errors.phone && (
+            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+          )}
+        </div>
+      )}
+
+      {/* Role - Dynamic enum values */}
+      {visibilityMap.role && (
+        <div>
+          <label htmlFor="role" className="block text-sm font-medium">
+            Role *
+          </label>
+          <select
+            id="role"
+            {...register("role")}
+            disabled={disabledMap.role}
+            className="mt-1 block w-full rounded-md border-gray-300"
+          >
+            <option value="">Select role</option>
+            <option value="Developer">Developer</option>
+            <option value="Designer">Designer</option>
+            <option value="Manager">Manager</option>
+            <option value="Other">Other</option>
+            <option value="Intern">Intern</option>
+          </select>
+          {errors.role && (
+            <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+          )}
+        </div>
+      )}
+
+      {/* Newsletter - Checkbox */}
+      {visibilityMap.newsletter && (
+        <div className="flex items-center">
+          <input
+            id="newsletter"
+            {...register("newsletter")}
+            type="checkbox"
+            disabled={disabledMap.newsletter}
+            className="mr-2"
+          />
+          <label htmlFor="newsletter" className="text-sm">
+            Subscribe to Newsletter
+          </label>
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+      >
+        {isSubmitting ? "Submitting..." : "Register"}
       </button>
     </form>
   );
 }
 ```
 
-### React Hook Form + Yup Integration
+### React Hook Form + Yup
 
-```bash
-npm install react-hook-form @hookform/resolvers yup @launchdarkly/flag-form
-```
+Same functionality using Yup validation:
 
 ```tsx
+import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-const userSchema = yup.object({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().required("Last name is required").meta({
-    flag: "show-last-name",
-    label: "Last Name",
-  }),
-  email: yup.string().email("Invalid email").required().meta({
+// Define Yup schema with flag metadata
+const userRegistrationSchema = yup.object({
+  firstName: yup
+    .string()
+    .min(2, "First name must be at least 2 characters")
+    .required(),
+
+  lastName: yup
+    .string()
+    .min(2, "Last name must be at least 2 characters")
+    .required()
+    .meta({
+      flag: "show-last-name",
+      label: "Last Name",
+    }),
+
+  email: yup.string().email("Invalid email address").required().meta({
     disabledFlag: "disable-email-editing",
     label: "Email Address",
   }),
+
+  phone: yup
+    .string()
+    .matches(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
+    .meta({
+      flag: "show-phone-field",
+      readonlyFlag: "readonly-phone",
+      label: "Phone Number",
+    }),
+
   role: yup
     .string()
     .oneOf(["Developer", "Designer", "Manager", "Other"])
+    .required()
     .meta({
       flag: "show-role-field",
+      enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
       label: "Role",
-      type: "select",
-      options: ["Developer", "Designer", "Manager", "Other"],
     }),
+
+  newsletter: yup.boolean().meta({
+    flag: "show-newsletter-opt-in",
+    defaultValue: true,
+    label: "Subscribe to Newsletter",
+  }),
 });
 
-function UserFormYup() {
+function ReactHookFormYupExample() {
   const flags = {
     "show-last-name": true,
-    "show-role-field": false,
-    "disable-email-editing": true,
+    "disable-email-editing": false,
+    "show-phone-field": true,
+    "readonly-phone": false,
+    "show-role-field": true,
+    "show-newsletter-opt-in": true,
   };
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "yup",
-    schema: userSchema,
+  const {
+    visibilityMap,
+    disabledMap,
+    readOnlyMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
+    schema: userRegistrationSchema,
     flags,
   });
-
-  // Create dynamic schema for only visible fields
-  const visibleFieldNames = visibleFields.map((f) => f.name);
-  const dynamicSchema = yup.object(
-    Object.fromEntries(
-      Object.entries(userSchema.fields).filter(([key]) =>
-        visibleFieldNames.includes(key)
-      )
-    )
-  );
-
-  type FormData = yup.InferType<typeof dynamicSchema>;
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: yupResolver(dynamicSchema),
+  } = useForm({
+    resolver: yupResolver(transformedSchema),
+    mode: "onBlur",
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data) => {
     console.log("Form submitted:", data);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   };
 
+  // Form JSX is identical to Zod example - showing condensed version
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {visibleFields.map((field) => (
-        <div key={field.name}>
-          <label htmlFor={field.name}>
-            {field.label}
-            {field.validation?.required && (
-              <span className="text-red-500">*</span>
-            )}
-          </label>
+      {/* First Name */}
+      <div>
+        <label>First Name *</label>
+        <input {...register("firstName")} placeholder="Enter first name" />
+        {errors.firstName && (
+          <p className="error">{errors.firstName.message}</p>
+        )}
+      </div>
 
-          {field.type === "select" ? (
-            <select
-              id={field.name}
-              {...register(field.name)}
-              disabled={disabledMap[field.name]}
-            >
-              <option value="">Select {field.label}</option>
-              {field.options?.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              id={field.name}
-              type={field.type}
-              {...register(field.name)}
-              disabled={disabledMap[field.name]}
-            />
-          )}
-
-          {errors[field.name] && (
-            <p className="text-red-500">{errors[field.name]?.message}</p>
+      {/* Last Name - Flag controlled */}
+      {visibilityMap.lastName && (
+        <div>
+          <label>Last Name *</label>
+          <input
+            {...register("lastName")}
+            disabled={disabledMap.lastName}
+            readOnly={readOnlyMap.lastName}
+            placeholder="Enter last name"
+          />
+          {errors.lastName && (
+            <p className="error">{errors.lastName.message}</p>
           )}
         </div>
-      ))}
+      )}
+
+      {/* Additional fields... */}
 
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Submitting..." : "Submit"}
+        {isSubmitting ? "Submitting..." : "Register"}
       </button>
     </form>
   );
 }
 ```
 
-### TanStack Form + Zod Integration
+### TanStack Form + Zod
 
-```bash
-npm install @tanstack/react-form @tanstack/zod-form-adapter zod @launchdarkly/flag-form
-```
+Using TanStack Form with Zod validation:
 
 ```tsx
+import React from "react";
 import { useForm } from "@tanstack/react-form";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-const userSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required").meta({
+const userRegistrationSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+
+  lastName: z.string().min(2, "Last name must be at least 2 characters").meta({
     flag: "show-last-name",
     label: "Last Name",
   }),
-  email: z.email("Invalid email").meta({
+
+  email: z.string().email("Invalid email address").meta({
     disabledFlag: "disable-email-editing",
     label: "Email Address",
   }),
+
   phone: z
     .string()
-    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone")
+    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .optional()
     .meta({
       flag: "show-phone-field",
+      readonlyFlag: "readonly-phone",
       label: "Phone Number",
-      type: "tel",
     }),
+
+  role: z.enum(["Developer", "Designer", "Manager", "Other"]).meta({
+    flag: "show-role-field",
+    enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
+    label: "Role",
+  }),
 });
 
-function UserFormTanStack() {
+function TanStackFormZodExample() {
   const flags = {
-    "show-last-name": false,
+    "show-last-name": true,
+    "disable-email-editing": false,
     "show-phone-field": true,
-    "disable-email-editing": true,
+    "readonly-phone": false,
+    "show-role-field": true,
   };
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "zod",
-    schema: userSchema,
+  const {
+    visibilityMap,
+    disabledMap,
+    readOnlyMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
+    schema: userRegistrationSchema,
     flags,
   });
 
@@ -546,301 +774,673 @@ function UserFormTanStack() {
       lastName: "",
       email: "",
       phone: "",
+      role: "",
     },
     onSubmit: async ({ value }) => {
       console.log("Form submitted:", value);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     },
   });
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
-      }}
-      className="space-y-4"
-    >
-      {visibleFields.map((field) => (
+    <div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        {/* First Name */}
         <form.Field
-          key={field.name}
-          name={field.name}
+          name="firstName"
           validatorAdapter={zodValidator}
           validators={{
-            onChange:
-              userSchema.shape[field.name as keyof typeof userSchema.shape],
+            onChange: z
+              .string()
+              .min(2, "First name must be at least 2 characters"),
           }}
         >
-          {(fieldApi) => (
+          {(field) => (
             <div>
-              <label htmlFor={field.name}>
-                {field.label}
-                {field.validation?.required && (
-                  <span className="text-red-500">*</span>
-                )}
-              </label>
-
+              <label htmlFor="firstName">First Name *</label>
               <input
-                id={field.name}
-                type={field.type}
-                value={fieldApi.state.value || ""}
-                onBlur={fieldApi.handleBlur}
-                onChange={(e) => fieldApi.handleChange(e.target.value)}
-                disabled={disabledMap[field.name]}
+                id="firstName"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter first name"
               />
-
-              {fieldApi.state.meta.errors && (
-                <p className="text-red-500">
-                  {fieldApi.state.meta.errors.join(", ")}
-                </p>
+              {field.state.meta.errors && (
+                <p className="error">{field.state.meta.errors.join(", ")}</p>
               )}
             </div>
           )}
         </form.Field>
-      ))}
 
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting]}
-      >
-        {([canSubmit, isSubmitting]) => (
-          <button type="submit" disabled={!canSubmit}>
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </button>
+        {/* Last Name - Flag controlled */}
+        {visibilityMap.lastName && (
+          <form.Field
+            name="lastName"
+            validatorAdapter={zodValidator}
+            validators={{
+              onChange: z
+                .string()
+                .min(2, "Last name must be at least 2 characters"),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="lastName">Last Name *</label>
+                <input
+                  id="lastName"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.lastName}
+                  readOnly={readOnlyMap.lastName}
+                  placeholder="Enter last name"
+                />
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
         )}
-      </form.Subscribe>
-    </form>
-  );
-}
-```
 
-### Dynamic Flag Updates
+        {/* Email */}
+        <form.Field
+          name="email"
+          validatorAdapter={zodValidator}
+          validators={{
+            onChange: z.string().email("Invalid email address"),
+          }}
+        >
+          {(field) => (
+            <div>
+              <label htmlFor="email">Email *</label>
+              <input
+                id="email"
+                name={field.name}
+                type="email"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                disabled={disabledMap.email}
+                readOnly={readOnlyMap.email}
+                placeholder="Enter email address"
+              />
+              {field.state.meta.errors && (
+                <p className="error">{field.state.meta.errors.join(", ")}</p>
+              )}
+            </div>
+          )}
+        </form.Field>
 
-```tsx
-import { useState } from "react";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+        {/* Phone - Flag controlled */}
+        {visibilityMap.phone && (
+          <form.Field
+            name="phone"
+            validatorAdapter={zodValidator}
+            validators={{
+              onChange: z
+                .string()
+                .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
+                .optional(),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  id="phone"
+                  name={field.name}
+                  type="tel"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.phone}
+                  readOnly={readOnlyMap.phone}
+                  placeholder="+1234567890"
+                />
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        )}
 
-function DynamicFlagsExample() {
-  const [flags, setFlags] = useState({
-    "show-advanced-fields": false,
-    "disable-sensitive-data": true,
-  });
+        {/* Role - Dynamic enum */}
+        {visibilityMap.role && (
+          <form.Field
+            name="role"
+            validatorAdapter={zodValidator}
+            validators={{
+              onChange: z.enum([
+                "Developer",
+                "Designer",
+                "Manager",
+                "Other",
+                "Intern",
+              ]),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="role">Role *</label>
+                <select
+                  id="role"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.role}
+                >
+                  <option value="">Select role</option>
+                  <option value="Developer">Developer</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Other">Other</option>
+                  <option value="Intern">Intern</option>
+                </select>
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        )}
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "zod",
-    schema: userSchema,
-    flags,
-  });
-
-  // Flags can be updated in real-time
-  const toggleAdvanced = () => {
-    setFlags((prev) => ({
-      ...prev,
-      "show-advanced-fields": !prev["show-advanced-fields"],
-    }));
-  };
-
-  return (
-    <div>
-      <button onClick={toggleAdvanced}>Toggle Advanced Fields</button>
-      <form>
-        {visibleFields.map((field) => (
-          <FieldComponent
-            key={field.name}
-            field={field}
-            disabled={disabledMap[field.name]}
-          />
-        ))}
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSubmitting ? "Submitting..." : "Register"}
+            </button>
+          )}
+        </form.Subscribe>
       </form>
     </div>
   );
 }
 ```
 
-### Integration with LaunchDarkly
+### TanStack Form + Yup
+
+Using TanStack Form with Yup validation:
+
+```tsx
+import React from "react";
+import { useForm } from "@tanstack/react-form";
+import { yupValidator } from "@tanstack/yup-form-adapter";
+import * as yup from "yup";
+import { useLDFlagSchema } from "@launchdarkly/flag-form";
+
+const userRegistrationSchema = yup.object({
+  firstName: yup
+    .string()
+    .min(2, "First name must be at least 2 characters")
+    .required(),
+
+  lastName: yup
+    .string()
+    .min(2, "Last name must be at least 2 characters")
+    .required()
+    .meta({
+      flag: "show-last-name",
+      label: "Last Name",
+    }),
+
+  email: yup.string().email("Invalid email address").required().meta({
+    disabledFlag: "disable-email-editing",
+    label: "Email Address",
+  }),
+
+  phone: yup
+    .string()
+    .matches(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
+    .meta({
+      flag: "show-phone-field",
+      readonlyFlag: "readonly-phone",
+      label: "Phone Number",
+    }),
+
+  role: yup
+    .string()
+    .oneOf(["Developer", "Designer", "Manager", "Other"])
+    .required()
+    .meta({
+      flag: "show-role-field",
+      enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
+      label: "Role",
+    }),
+});
+
+function TanStackFormYupExample() {
+  const flags = {
+    "show-last-name": true,
+    "disable-email-editing": false,
+    "show-phone-field": true,
+    "readonly-phone": false,
+    "show-role-field": true,
+  };
+
+  const {
+    visibilityMap,
+    disabledMap,
+    readOnlyMap,
+    schema: transformedSchema,
+  } = useLDFlagSchema({
+    schema: userRegistrationSchema,
+    flags,
+  });
+
+  const form = useForm({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      role: "",
+    },
+    onSubmit: async ({ value }) => {
+      console.log("Form submitted:", value);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    },
+  });
+
+  return (
+    <div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        {/* First Name */}
+        <form.Field
+          name="firstName"
+          validatorAdapter={yupValidator}
+          validators={{
+            onChange: yup
+              .string()
+              .min(2, "First name must be at least 2 characters")
+              .required(),
+          }}
+        >
+          {(field) => (
+            <div>
+              <label htmlFor="firstName">First Name *</label>
+              <input
+                id="firstName"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter first name"
+              />
+              {field.state.meta.errors && (
+                <p className="error">{field.state.meta.errors.join(", ")}</p>
+              )}
+            </div>
+          )}
+        </form.Field>
+
+        {/* Last Name - Flag controlled */}
+        {visibilityMap.lastName && (
+          <form.Field
+            name="lastName"
+            validatorAdapter={yupValidator}
+            validators={{
+              onChange: yup
+                .string()
+                .min(2, "Last name must be at least 2 characters")
+                .required(),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="lastName">Last Name *</label>
+                <input
+                  id="lastName"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.lastName}
+                  readOnly={readOnlyMap.lastName}
+                  placeholder="Enter last name"
+                />
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        )}
+
+        {/* Email */}
+        <form.Field
+          name="email"
+          validatorAdapter={yupValidator}
+          validators={{
+            onChange: yup.string().email("Invalid email address").required(),
+          }}
+        >
+          {(field) => (
+            <div>
+              <label htmlFor="email">Email *</label>
+              <input
+                id="email"
+                name={field.name}
+                type="email"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                disabled={disabledMap.email}
+                readOnly={readOnlyMap.email}
+                placeholder="Enter email address"
+              />
+              {field.state.meta.errors && (
+                <p className="error">{field.state.meta.errors.join(", ")}</p>
+              )}
+            </div>
+          )}
+        </form.Field>
+
+        {/* Phone - Flag controlled */}
+        {visibilityMap.phone && (
+          <form.Field
+            name="phone"
+            validatorAdapter={yupValidator}
+            validators={{
+              onChange: yup
+                .string()
+                .matches(/^\+?[1-9]\d{1,14}$/, "Invalid phone number"),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  id="phone"
+                  name={field.name}
+                  type="tel"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.phone}
+                  readOnly={readOnlyMap.phone}
+                  placeholder="+1234567890"
+                />
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        )}
+
+        {/* Role - Dynamic enum */}
+        {visibilityMap.role && (
+          <form.Field
+            name="role"
+            validatorAdapter={yupValidator}
+            validators={{
+              onChange: yup
+                .string()
+                .oneOf(["Developer", "Designer", "Manager", "Other", "Intern"])
+                .required(),
+            }}
+          >
+            {(field) => (
+              <div>
+                <label htmlFor="role">Role *</label>
+                <select
+                  id="role"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  disabled={disabledMap.role}
+                >
+                  <option value="">Select role</option>
+                  <option value="Developer">Developer</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Other">Other</option>
+                  <option value="Intern">Intern</option>
+                </select>
+                {field.state.meta.errors && (
+                  <p className="error">{field.state.meta.errors.join(", ")}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+        )}
+
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isSubmitting]}
+        >
+          {([canSubmit, isSubmitting]) => (
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSubmitting ? "Submitting..." : "Register"}
+            </button>
+          )}
+        </form.Subscribe>
+      </form>
+    </div>
+  );
+}
+```
+
+### Installation Requirements
+
+For each combination, you'll need these dependencies:
+
+**React Hook Form + Zod:**
+
+```bash
+npm install react-hook-form @hookform/resolvers zod @launchdarkly/flag-form
+```
+
+**React Hook Form + Yup:**
+
+```bash
+npm install react-hook-form @hookform/resolvers yup @launchdarkly/flag-form
+```
+
+**TanStack Form + Zod:**
+
+```bash
+npm install @tanstack/react-form @tanstack/zod-form-adapter zod @launchdarkly/flag-form
+```
+
+**TanStack Form + Yup:**
+
+```bash
+npm install @tanstack/react-form @tanstack/yup-form-adapter yup @launchdarkly/flag-form
+```
+
+---
+
+## 🎯 Use Cases
+
+### A/B Testing Forms
+
+```tsx
+// Show different form layouts based on experiment flags
+const experimentFlags = {
+  "experiment-compact-form": true,
+  "experiment-show-optional-fields": false,
+};
+```
+
+### Progressive Feature Rollout
+
+```tsx
+// Gradually enable new fields for different user segments
+const userFlags = {
+  "beta-advanced-settings": user.isBetaUser,
+  "premium-features": user.isPremium,
+};
+```
+
+### Permission-Based Forms
+
+```tsx
+// Control field access based on user permissions
+const permissionFlags = {
+  "can-edit-sensitive-data": user.hasPermission("EDIT_SENSITIVE"),
+  "can-view-admin-fields": user.isAdmin,
+};
+```
+
+### Environment-Specific Behavior
+
+```tsx
+// Different form behavior across environments
+const envFlags = {
+  "development-debug-fields": process.env.NODE_ENV === "development",
+  "production-simplified-form": process.env.NODE_ENV === "production",
+};
+```
+
+---
+
+## 🔄 LaunchDarkly Integration
+
+While this library doesn't depend on LaunchDarkly's SDK, it integrates seamlessly:
 
 ```tsx
 import { useFlags } from "@launchdarkly/react-client-sdk";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
 
-function LaunchDarklyIntegration() {
+function LaunchDarklyForm() {
   const ldFlags = useFlags(); // Get all flags from LaunchDarkly
 
-  const { visibleFields, disabledMap } = useLDFlagSchema({
-    schemaType: "zod",
+  const { visibilityMap, disabledMap } = useLDFlagSchema({
     schema: userSchema,
     flags: ldFlags,
   });
 
-  // Your form rendering logic here...
+  // Your form logic here
 }
+```
+
+### Other Flag Providers
+
+Works with any flag system:
+
+```tsx
+// Custom flag provider
+const customFlags = useCustomFlags();
+
+// Environment variables
+const envFlags = {
+  "feature-a": process.env.REACT_APP_FEATURE_A === "true",
+};
+
+// Context/state management
+const contextFlags = useContext(FeatureFlagContext);
+
+// All work the same way
+const result = useLDFlagSchema({ schema, flags: anyFlagSource });
 ```
 
 ---
 
 ## 🏗️ Architecture
 
-This library follows a simple, functional approach:
+### Schema Detection
 
-1. **Schema-First**: Define your form structure using existing Zod/Yup schemas
-2. **Metadata Enhancement**: Add flagging metadata to schema fields using `.meta()`
-3. **Flag Processing**: The hook extracts and processes fields based on current flag values
-4. **Framework Agnostic**: Returns processed data that works with any form library
-5. **Type Safety**: Full TypeScript support with schema validation and autocompletion
+The library automatically detects whether you're using Zod or Yup:
 
-### Processing Flow
+```typescript
+// Automatic detection
+const { schema } = useLDFlagSchema({
+  schema: zodSchema, // Detected as 'zod'
+  flags,
+});
 
+const { schema } = useLDFlagSchema({
+  schema: yupSchema, // Detected as 'yup'
+  flags,
+});
 ```
-Zod/Yup Schema + Feature Flags → useLDFlagSchema → {visibleFields, disabledMap}
-                                        ↓
-                                 Your Form Library
-                                        ↓
-                                  Rendered Form
-```
 
-### Internal Schema Extraction
+### Transformation Pipeline
 
-The library includes two utility functions that automatically extract flagged form schemas:
+1. **Schema Analysis**: Extract metadata from schema fields
+2. **Flag Processing**: Apply flag values to field controls
+3. **Schema Transformation**: Create new schema with dynamic values
+4. **State Mapping**: Generate control maps for UI rendering
 
-- `extractFlaggedSchemaFromZod()` - Processes Zod schemas
-- `extractFlaggedSchemaFromYup()` - Processes Yup schemas
+### Performance
 
-These functions:
-
-1. Iterate through schema fields
-2. Extract metadata from field definitions
-3. Convert to a standardized `FlaggedFormSchema` format
-4. Apply validation rules and type information
+- **Memoized**: All computations are memoized for optimal performance
+- **Selective Updates**: Only re-compute when schema or flags change
+- **Tree Shaking**: Unused code is automatically removed
+- **Type Safe**: Full TypeScript inference with no runtime overhead
 
 ---
 
-## 🔧 Advanced Configuration
+## 🔧 Development
 
-### Conditional Field Dependencies
-
-```tsx
-// Example: Complex conditional logic
-const conditionalSchema = z.object({
-  userType: z.enum(["customer", "admin"]).meta({
-    label: "User Type",
-    type: "select",
-    options: ["customer", "admin"],
-  }),
-  adminSettings: z.string().optional().meta({
-    flag: "show-admin-settings", // Show only for admin users
-    label: "Admin Settings",
-  }),
-  customerSupport: z.string().optional().meta({
-    flag: "show-customer-support", // Show only for customers
-    label: "Customer Support",
-  }),
-});
-
-// Manage conditional flags based on form state
-const updateConditionalFlags = (userType: string) => {
-  return {
-    "show-admin-settings": userType === "admin",
-    "show-customer-support": userType === "customer",
-  };
-};
-```
-
-### Custom Field Types
-
-```tsx
-// Extend the FieldType for custom inputs
-const customSchema = z.object({
-  colorPicker: z.string().meta({
-    label: "Theme Color",
-    type: "color" as const,
-    flag: "show-color-picker",
-  }),
-  fileUpload: z.string().meta({
-    label: "Profile Picture",
-    type: "file" as const,
-    flag: "show-file-upload",
-  }),
-  dateRange: z.string().meta({
-    label: "Birth Date",
-    type: "date" as const,
-    flag: "show-birth-date",
-  }),
-});
-```
-
-### Multiple Schema Support
-
-```tsx
-// You can use different schemas for different parts of your form
-const personalInfoSchema = z.object({
-  firstName: z.string().required(),
-  lastName: z.string().required().meta({ flag: "show-last-name" }),
-});
-
-const contactInfoSchema = z.object({
-  email: z.email().required(),
-  phone: z.string().optional().meta({ flag: "show-phone" }),
-});
-
-function MultiSchemaForm() {
-  const personalFields = useLDFlagSchema({
-    schemaType: "zod",
-    schema: personalInfoSchema,
-    flags,
-  });
-
-  const contactFields = useLDFlagSchema({
-    schemaType: "zod",
-    schema: contactInfoSchema,
-    flags,
-  });
-
-  // Render both sets of fields...
-}
-```
-
----
+### Build Commands
 
 ```bash
-# Run tests once
-npm run test:run
+# Build the library
+npm run build
 
-# Run tests in watch mode
-npm test
+# Type checking
+npm run type-check
 
-# Run tests with coverage
-npm run test:coverage
+# Clean build artifacts
+npm run clean
+```
 
-# Run tests with UI (if @vitest/ui is installed)
-npx vitest --ui
+### Project Structure
+
+```
+src/
+├── hooks/
+│   └── use-ld-flag-schema.ts    # Main hook implementation
+├── types/
+│   └── schema.ts                # TypeScript definitions
+├── utils/
+│   └── index.ts                 # Utility functions
+├── zod/
+│   └── extract-flagged-schema-from-zod.ts
+└── yup/
+    └── extract-flagged-schema-from-yup.ts
 ```
 
 ---
 
 ## 🤝 Contributing
 
-This library is designed to be minimal and focused. If you have ideas for improvements:
+We welcome contributions! Please:
 
-1. **Maintain Framework Agnosticism**: Ensure changes work with any form library
-2. **Keep API Surface Small**: Avoid feature creep and maintain simplicity
-3. **Add Comprehensive Types**: Include full TypeScript support for new features
-4. **Include Usage Examples**: Add examples in your PR for new functionality
-5. **Test Coverage**: Include tests for new features and edge cases
-
-### Development Setup
-
-```bash
-git clone https://github.com/your-org/flag-form.git
-cd flag-form
-npm install
-npm run dev
-```
-
-### Building
-
-```bash
-npm run build
-npm run type-check
-```
+1. **Maintain Compatibility**: Ensure changes work with both Zod and Yup
+2. **Add Tests**: Include comprehensive test coverage
+3. **Type Safety**: Maintain full TypeScript support
+4. **Documentation**: Update README and add examples
 
 ---
 
@@ -852,6 +1452,6 @@ MIT © Alec Aldrine Lakra
 
 ## 🙏 Acknowledgments
 
-- [LaunchDarkly](https://launchdarkly.com/) for inspiring feature flag-driven development
+- [LaunchDarkly](https://launchdarkly.com/) for pioneering feature flag-driven development
 - [Zod](https://zod.dev/) and [Yup](https://github.com/jquense/yup) for excellent schema validation
-- [React Hook Form](https://react-hook-form.com/) and [TanStack Form](https://tanstack.com/form) for form management inspiration
+- [React](https://react.dev/) for the amazing hooks ecosystem

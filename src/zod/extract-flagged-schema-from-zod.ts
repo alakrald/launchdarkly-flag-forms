@@ -14,10 +14,6 @@ export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
-      minValue: meta.minValue,
-      maxValue: meta.maxValue,
-      enumValues: meta.enumValues,
-      defaultValue: meta.defaultValue
     } as FlaggedFieldSchema;
   });
 
@@ -34,7 +30,7 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
 ): ZodObject<T> {
   const newShape: ZodRawShape = {};
   for (const [key, fieldSchema] of Object.entries(base.shape)) {
-    const meta = (fieldSchema as ZodTypeAny).meta?.() || {}
+    const meta: any = (fieldSchema as ZodTypeAny).meta?.() || {}
     // omit
     if (meta.omitFlag && !flags[meta.omitFlag as string]) {
       continue;
@@ -42,27 +38,25 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
     let zodShape = fieldSchema;
     // required/optional
     if (meta.requiredFlag) {
-      if (!flags[meta.requiredFlag as string] && typeof (zodShape as any).optional === 'function') {
+      if (!flags[meta.requiredFlag] && typeof (zodShape as any).optional === 'function') {
         zodShape = (zodShape as any).optional();
       }
     }
     // min
-    if (!isNil(meta.minValue) && typeof (zodShape as any).min === 'function') {
-      zodShape = (zodShape as any).min(meta.minValue);
+    if (meta.minValueFlag && !isNil(flags[meta.minValueFlag as string]) && 'min' in zodShape) {
+      zodShape = (zodShape as any).min(flags[meta.minValueFlag as string]);
     }
     // max
-    if (!isNil(meta.maxValue) && 'max' in zodShape) {
-      zodShape = (zodShape as any).max(meta.maxValue);
+    if (meta.maxValueFlag && !isNil(flags[meta.maxValueFlag as string]) && 'max' in zodShape) {
+      zodShape = (zodShape as any).max(flags[meta.maxValueFlag as string]);
     }
     // enum override
-    if (Array.isArray(meta.enumValues)) {
-      zodShape = z.enum(meta.enumValues);
+    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string])) {
+      zodShape = z.enum(flags[meta.enumValuesFlag as string] as string[]);
     }
     // default override
-    if (!isNil(meta.defaultValue)) {
-      if (typeof (zodShape as any).default === 'function') {
-        zodShape = (zodShape as any).default(meta.defaultValue);
-      }
+    if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in zodShape) {
+        zodShape = (zodShape as any).default(flags[meta.defaultValueFlag as string]);
     }
     // Create a new object to avoid mutating the readonly index signature
     Object.assign(newShape, { [key]: zodShape });

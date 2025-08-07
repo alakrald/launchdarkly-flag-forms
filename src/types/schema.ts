@@ -7,10 +7,11 @@ export interface FlaggedFieldSchema {
   disabledFlag?: string // controls disabled state
   readonlyFlag?: string // controls readonly state
   requiredFlag?: string // controls required state
-  minValue?: number // controls min value
-  maxValue?: number // controls max value
-  enumValues?: Array<string | number | boolean | Date | string | undefined | null> // controls enum values
-  defaultValue?: FlagValue // controls default value
+  omitFlag?: string // controls if the field should be omitted
+  minValueFlag?: string // controls min value
+  maxValueFlag?: string // controls max value
+  enumValuesFlag?: string // controls enum values
+  defaultValueFlag?: string // controls default value
 }
 
 export type SchemaType = 'zod' | 'yup'
