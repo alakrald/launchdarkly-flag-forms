@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
-import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   build: {
@@ -12,7 +11,7 @@ export default defineConfig({
       formats: ["cjs", "es"]
     },
     rollupOptions: {
-      external: [...Object.keys(pkg.peerDependencies || {})]
+      external: [...Object.keys(pkg.peerDependencies || {}), ...Object.keys(pkg.optionalDependencies || {})]
     },
     sourcemap: true,
     emptyOutDir: true
@@ -21,7 +20,6 @@ export default defineConfig({
     dts({
       outDir: "dist",
       insertTypesEntry: true
-    }), 
-    react()
+    })
   ]
 });        
