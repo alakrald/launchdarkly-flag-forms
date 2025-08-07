@@ -8,7 +8,7 @@ export default defineConfig({
     lib: {
       entry: "./src/index.ts",
       name: "launchdarkly-flag-form",
-      fileName: (format) => `index.${format}.js`,
+      fileName: (format) => `launchdarkly-flag-form-lib.${format}.js`,
       formats: ["cjs", "es"]
     },
     rollupOptions: {
@@ -17,5 +17,11 @@ export default defineConfig({
     sourcemap: true,
     emptyOutDir: true
   },
-  plugins: [dts(), react()]
+  plugins: [
+    dts({
+      outDir: "dist",
+      insertTypesEntry: true
+    }), 
+    react()
+  ]
 });        
