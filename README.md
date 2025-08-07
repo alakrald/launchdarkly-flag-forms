@@ -25,15 +25,18 @@ yarn add launchdarkly-flag-form
 pnpm add launchdarkly-flag-form
 ```
 
-### Peer Dependencies
+### Dependencies
 
 ```bash
 # Required
 npm install react react-dom
 
-# Choose your schema library
+# Choose your schema library (install at least one)
 npm install zod        # For Zod schemas
 npm install yup        # For Yup schemas
+
+# Or install both if you want to use both
+npm install zod yup
 ```
 
 ---
