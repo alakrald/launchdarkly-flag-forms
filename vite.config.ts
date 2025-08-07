@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 import pkg from "./package.json";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   build: {
@@ -16,5 +17,5 @@ export default defineConfig({
     sourcemap: true,
     emptyOutDir: true
   },
-  plugins: [dts()]
+  plugins: [dts(), react()]
 });        
