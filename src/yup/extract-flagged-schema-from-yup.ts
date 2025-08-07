@@ -39,7 +39,7 @@ export function transformYupSchemaWithValues(
       ? (fieldSchema as any).meta() || {}
       : {};
     // omit
-    if (meta.omitFlag && flags[meta.omitFlag as string] === false) {
+    if (meta.omitFlag && flags[meta.omitFlag as string]) {
       continue;
     }
 
