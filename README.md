@@ -385,6 +385,173 @@ const resolver = zodResolver(transformedSchema as typeof userSchema);
 // const resolver = yupResolver(transformedSchema as typeof userYupSchema);
 ```
 
+## 🏗️ Supported Flag Types
+
+The library supports six different types of flags to control various aspects of your form fields:
+
+### **1. `visibilityFlag` (Visibility Control)**
+
+Controls whether a field is visible in the form.
+
+```typescript
+const schema = z.object({
+  lastName: z.string().meta({
+    visibilityFlag: "show-last-name", // Field visible when flag is true
+  }),
+});
+
+const flags = { "show-last-name": true };
+const { visibilityMap } = useLDFlagSchema({ schema, flags });
+
+// Usage
+{
+  visibilityMap.lastName && <input name="lastName" />;
+}
+```
+
+### **2. `disabledFlag` (Interaction Control)**
+
+Controls whether a field is disabled (non-interactive).
+
+```typescript
+const schema = z.object({
+  email: z.string().meta({
+    disabledFlag: "disable-email-editing",
+  }),
+});
+
+const flags = { "disable-email-editing": false }; // false = enabled
+const { disabledMap } = useLDFlagSchema({ schema, flags });
+
+// Usage
+<input name="email" disabled={disabledMap.email} />;
+```
+
+### **3. `readonlyFlag` (Edit Control)**
+
+Controls whether a field is readonly (visible but not editable).
+
+```typescript
+const schema = z.object({
+  userId: z.string().meta({
+    readonlyFlag: "readonly-user-id",
+  }),
+});
+
+const flags = { "readonly-user-id": true }; // true = readonly
+const { readOnlyMap } = useLDFlagSchema({ schema, flags });
+
+// Usage
+<input name="userId" readOnly={readOnlyMap.userId} />;
+```
+
+### **4. `requiredFlag` (Validation Control)**
+
+Controls whether a field is required for form validation.
+
+```typescript
+const schema = z.object({
+  phone: z.string().optional().meta({
+    requiredFlag: "phone-required",
+  }),
+});
+
+const flags = { "phone-required": true }; // true = required
+const { requiredMap } = useLDFlagSchema({ schema, flags });
+
+// Usage
+<input name="phone" required={requiredMap.phone} />;
+```
+
+### **5. `omitFlag` (Schema Control)**
+
+Controls whether a field is completely omitted from the schema.
+
+```typescript
+const schema = z.object({
+  debugInfo: z.string().meta({
+    omitFlag: "include-debug-fields",
+  }),
+});
+
+const flags = { "include-debug-fields": false }; // false = omitted
+const { schema: transformedSchema } = useLDFlagSchema({ schema, flags });
+
+// Field is completely removed from validation schema when omitted
+```
+
+### **6. `defaultValueFlag` (Default Value Control)**
+
+Controls the default value of a field through flags.
+
+```typescript
+const schema = z.object({
+  theme: z.string().meta({
+    defaultValueFlag: "user-preferred-theme",
+  }),
+});
+
+const flags = { "user-preferred-theme": "dark" };
+const { defaultValueMap } = useLDFlagSchema({ schema, flags });
+
+// Usage
+const { register } = useForm({
+  defaultValues: {
+    theme: defaultValueMap.theme, // "dark"
+  },
+});
+```
+
+### **Flag Logic Summary**
+
+| Flag Type          | `true`                     | `false`                    | `undefined` | Use Case                    |
+| ------------------ | -------------------------- | -------------------------- | ----------- | --------------------------- |
+| `flag`             | ✅ **Visible**             | ❌ Hidden                  | ✅ Visible  | Show/hide fields            |
+| `disabledFlag`     | ✅ Enabled                 | ❌ **Disabled**            | ✅ Enabled  | Enable/disable interaction  |
+| `readonlyFlag`     | ❌ **Readonly**            | ✅ Editable                | ✅ Editable | Control editability         |
+| `requiredFlag`     | ❌ **Required**            | ✅ Optional                | ✅ Optional | Control validation          |
+| `omitFlag`         | ✅ Included                | ❌ **Omitted**             | ✅ Included | Include/exclude from schema |
+| `defaultValueFlag` | Flag value becomes default | Flag value becomes default | `undefined` | Dynamic defaults            |
+
+### **Combining Multiple Flags**
+
+You can use multiple flags on the same field for complex control:
+
+```typescript
+const schema = z.object({
+  adminEmail: z.string().email().meta({
+    flag: "show-admin-fields", // Visibility control
+    disabledFlag: "enable-admin-edit", // Interaction control
+    readonlyFlag: "readonly-admin-data", // Edit control
+    requiredFlag: "admin-email-required", // Validation control
+    defaultValueFlag: "admin-default-email", // Default value control
+  }),
+});
+
+const flags = {
+  "show-admin-fields": true, // Show the field
+  "enable-admin-edit": true, // Field is enabled (not disabled)
+  "readonly-admin-data": false, // Field is editable (not readonly)
+  "admin-email-required": true, // Field is required
+  "admin-default-email": "admin@company.com", // Default value
+};
+
+const {
+  visibilityMap,
+  disabledMap,
+  readOnlyMap,
+  requiredMap,
+  defaultValueMap,
+} = useLDFlagSchema({ schema, flags });
+
+// Result:
+// - Field is visible: visibilityMap.adminEmail = true
+// - Field is enabled: disabledMap.adminEmail = false
+// - Field is editable: readOnlyMap.adminEmail = false
+// - Field is required: requiredMap.adminEmail = true
+// - Default value: defaultValueMap.adminEmail = "admin@company.com"
+```
+
 ### Meta Properties
 
 Define flag control in your schema using the `.meta()` method:
