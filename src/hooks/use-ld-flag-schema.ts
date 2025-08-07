@@ -12,6 +12,7 @@ export const useLDFlagSchema = (
     {schema, flags, overrideFlags}: UseFlaggedSchemaParams
   ) => {
 
+  const updatedFlags = useMemo(()=>({ ...flags, ...(overrideFlags ?? {}) }), [flags, overrideFlags]);
   const schemaType = useMemo(() => detectSchemaType(schema), [schema]);
   const fields: FlaggedFieldSchema[] = useMemo(()=>{
     switch (schemaType) {
@@ -27,17 +28,16 @@ export const useLDFlagSchema = (
   const transformedSchema = useMemo(() => {
     switch (schemaType) {
       case 'zod':
-        return transformZodSchemaWithValues(schema as ZodObject<ZodRawShape>, flags);
+        return transformZodSchemaWithValues(schema as ZodObject<ZodRawShape>, updatedFlags);
       case 'yup':
-        return transformYupSchemaWithValues(schema as AnyObjectSchema, flags);
+        return transformYupSchemaWithValues(schema as AnyObjectSchema, updatedFlags);
       default:
         return schema;
     }
-  }, [schemaType, schema, flags]);
+  }, [schemaType, schema, updatedFlags]);
   
 
   const value = useMemo(()=> {
-    const updatedFlags = { ...flags, ...(overrideFlags ?? {}) };
     const visibilityMap = Object.fromEntries(
       fields.map(field => [
         field.name,
@@ -74,9 +74,7 @@ export const useLDFlagSchema = (
       schema: transformedSchema
     }
 
-  }, [fields, flags])
-
-  
+  }, [fields, updatedFlags])
 
   return value
 }

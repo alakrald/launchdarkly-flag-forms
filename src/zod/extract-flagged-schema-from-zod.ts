@@ -37,8 +37,8 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
     }
     let zodShape = fieldSchema;
     // required/optional
-    if (meta.requiredFlag) {
-      if (!flags[meta.requiredFlag] && typeof (zodShape as any).optional === 'function') {
+    if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'optional' in zodShape) {
+      if (!flags[meta.requiredFlag as string]) {
         zodShape = (zodShape as any).optional();
       }
     }
@@ -51,8 +51,8 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
       zodShape = (zodShape as any).max(flags[meta.maxValueFlag as string]);
     }
     // enum override
-    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string])) {
-      zodShape = z.enum(flags[meta.enumValuesFlag as string] as string[]);
+    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string]) && 'enum' in zodShape) {
+      zodShape = (zodShape as any).enum(flags[meta.enumValuesFlag as string] as string[]);
     }
     // default override
     if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in zodShape) {

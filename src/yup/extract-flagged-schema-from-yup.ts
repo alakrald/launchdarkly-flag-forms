@@ -45,24 +45,24 @@ export function transformYupSchemaWithValues(
 
     let yupShape = fieldSchema.clone()
     // required vs notRequired
-    if (meta.requiredFlag) {
+    if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'required' in yupShape) {
       yupShape = flags[meta.requiredFlag] ? yupShape.required() : yupShape.notRequired()
     }
     // min
-    if (meta.minValueFlag && !isNil(flags[meta.minValueFlag as string]) && typeof (yupShape as any).min === 'function') {
+    if (meta.minValueFlag && !isNil(flags[meta.minValueFlag as string]) && 'min' in yupShape) {
       yupShape = (yupShape as any).min(flags[meta.minValueFlag as string])
     }
     // max
-    if (meta.maxValueFlag && !isNil(flags[meta.maxValueFlag as string]) && typeof (yupShape as any).max === 'function') {
+    if (meta.maxValueFlag && !isNil(flags[meta.maxValueFlag as string]) && 'max' in yupShape) {
       yupShape = (yupShape as any).max(flags[meta.maxValueFlag as string])
     }
     // enum override (oneOf)
-    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string])) {
+    if (meta.enumValuesFlag && Array.isArray(flags[meta.enumValuesFlag as string]) && 'oneOf' in yupShape) {
       yupShape = (yupShape as any).oneOf(flags[meta.enumValuesFlag as string])
     }
     // default override
-    if (!isNil(meta.defaultValue)) {
-      yupShape = yupShape.default(meta.defaultValue)
+    if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in yupShape) {
+      yupShape = (yupShape as any).default(flags[meta.defaultValueFlag as string])
     }
     // Create a new object to avoid mutating the readonly index signature
     Object.assign(newShape, { [key]: yupShape });
