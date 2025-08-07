@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: "./src/index.ts",
-      name: "@launchdarkly/flag-forms",
+      name: "launchdarkly-flag-form",
       fileName: (format) => `index.${format}.js`,
       formats: ["cjs", "es"]
     },

@@ -1,4 +1,4 @@
-# 🏁 @launchdarkly/flag-form
+# 🏁 launchdarkly-flag-form
 
 A powerful React hook library for dynamic form control using feature flags. Transform your forms with real-time field visibility, validation, and behavior based on feature flag values.
 
@@ -18,11 +18,11 @@ A powerful React hook library for dynamic form control using feature flags. Tran
 ## 📦 Installation
 
 ```bash
-npm install @launchdarkly/flag-form
+npm install launchdarkly-flag-form
 # or
-yarn add @launchdarkly/flag-form
+yarn add launchdarkly-flag-form
 # or
-pnpm add @launchdarkly/flag-form
+pnpm add launchdarkly-flag-form
 ```
 
 ### Peer Dependencies
@@ -45,7 +45,7 @@ npm install yup        # For Yup schemas
 ```tsx
 import React from "react";
 import { z } from "zod";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 // Define schema with flag metadata
 const userSchema = z.object({
@@ -137,7 +137,7 @@ function UserForm() {
 
 ```tsx
 import * as yup from "yup";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 const userSchema = yup.object({
   firstName: yup.string().required("Required"),
@@ -366,7 +366,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 // Define schema with comprehensive flag controls
 const userRegistrationSchema = z.object({
@@ -587,7 +587,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 // Define Yup schema with flag metadata
 const userRegistrationSchema = yup.object({
@@ -717,7 +717,7 @@ import React from "react";
 import { useForm } from "@tanstack/react-form";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 const userRegistrationSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -984,7 +984,7 @@ import React from "react";
 import { useForm } from "@tanstack/react-form";
 import { yupValidator } from "@tanstack/yup-form-adapter";
 import * as yup from "yup";
-import { useLDFlagSchema } from "@launchdarkly/flag-form";
+import { useLDFlagSchema } from "launchdarkly-flag-form";
 
 const userRegistrationSchema = yup.object({
   firstName: yup
@@ -1257,25 +1257,25 @@ For each combination, you'll need these dependencies:
 **React Hook Form + Zod:**
 
 ```bash
-npm install react-hook-form @hookform/resolvers zod @launchdarkly/flag-form
+npm install react-hook-form @hookform/resolvers zod launchdarkly-flag-form
 ```
 
 **React Hook Form + Yup:**
 
 ```bash
-npm install react-hook-form @hookform/resolvers yup @launchdarkly/flag-form
+npm install react-hook-form @hookform/resolvers yup launchdarkly-flag-form
 ```
 
 **TanStack Form + Zod:**
 
 ```bash
-npm install @tanstack/react-form @tanstack/zod-form-adapter zod @launchdarkly/flag-form
+npm install @tanstack/react-form @tanstack/zod-form-adapter zod launchdarkly-flag-form
 ```
 
 **TanStack Form + Yup:**
 
 ```bash
-npm install @tanstack/react-form @tanstack/yup-form-adapter yup @launchdarkly/flag-form
+npm install @tanstack/react-form @tanstack/yup-form-adapter yup launchdarkly-flag-form
 ```
 
 ---
