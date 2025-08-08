@@ -41,7 +41,7 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
     // required/optional
     if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string])) {
       const shouldBeRequired = !!flags[meta.requiredFlag as string]
-      const isCurrentlyOptional = (zodShape as any)?._def?.typeName === 'ZodOptional'
+      const isCurrentlyOptional = (zodShape as any)?._def?.typeName === 'optional'
 
       if (shouldBeRequired && isCurrentlyOptional) {
         // Make required by unwrapping ZodOptional
@@ -50,10 +50,6 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
         // Make optional by wrapping
         zodShape = (zodShape as any).optional()
       }
-    }
-    // default override
-    if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in zodShape) {
-        zodShape = (zodShape as any).default(flags[meta.defaultValueFlag as string]);
     }
     // Create a new object to avoid mutating the readonly index signature
     Object.assign(newShape, { [key]: zodShape });

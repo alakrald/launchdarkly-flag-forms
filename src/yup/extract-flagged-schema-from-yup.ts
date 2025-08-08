@@ -50,10 +50,6 @@ export function transformYupSchemaWithValues(
     if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'required' in yupShape) {
       yupShape = flags[meta.requiredFlag as string] ? yupShape.required() : yupShape.notRequired()
     }
-    // default override
-    if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in yupShape) {
-      yupShape = (yupShape as any).default(flags[meta.defaultValueFlag as string])
-    }
     // Create a new object to avoid mutating the readonly index signature
     Object.assign(newShape, { [key]: yupShape });
   }

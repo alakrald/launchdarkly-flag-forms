@@ -502,17 +502,6 @@ const { register } = useForm({
 });
 ```
 
-### **Flag Logic Summary**
-
-| Flag Type          | `true`                     | `false`                    | `undefined` | Use Case                    |
-| ------------------ | -------------------------- | -------------------------- | ----------- | --------------------------- |
-| `flag`             | ✅ **Visible**             | ❌ Hidden                  | ✅ Visible  | Show/hide fields            |
-| `disabledFlag`     | ✅ Enabled                 | ❌ **Disabled**            | ✅ Enabled  | Enable/disable interaction  |
-| `readonlyFlag`     | ❌ **Readonly**            | ✅ Editable                | ✅ Editable | Control editability         |
-| `requiredFlag`     | ❌ **Required**            | ✅ Optional                | ✅ Optional | Control validation          |
-| `omitFlag`         | ✅ Included                | ❌ **Omitted**             | ✅ Included | Include/exclude from schema |
-| `defaultValueFlag` | Flag value becomes default | Flag value becomes default | `undefined` | Dynamic defaults            |
-
 ### **Combining Multiple Flags**
 
 You can use multiple flags on the same field for complex control:
