@@ -7,7 +7,7 @@ A powerful React hook library for dynamic form control using feature flags. Tran
 - 🚀 **React Hook-based**: Simple `useLDFlagSchema` hook for seamless integration
 - 🔄 **Dynamic Schema Transformation**: Real-time schema modification based on flag values
 - 🛡️ **Type-safe**: Full TypeScript support with Zod and Yup schemas
-- ⚡ **Multiple Control Types**: Visibility, disabled state, readonly, required validation
+- ⚡ **Multiple Control Types**: Visibility, disabled state, readonly, omit, dynamic defaults
 - 🎯 **Framework Agnostic**: Works with any form library (React Hook Form, TanStack Form, etc.)
 - 🔧 **Schema Support**: Native Zod and Yup integration with automatic detection
 - 📦 **Lightweight**: Minimal bundle size with tree-shaking support
@@ -85,7 +85,6 @@ function UserForm() {
     visibilityMap,
     disabledMap,
     readOnlyMap,
-    requiredMap,
     schema: transformedSchema,
   } = useLDFlagSchema({
     schema: userSchema,
@@ -98,7 +97,7 @@ function UserForm() {
       <input
         name="firstName"
         placeholder="First Name"
-        required={requiredMap.firstName}
+        // validation handled by schema
       />
 
       {/* Last name - controlled by flag */}
@@ -108,7 +107,7 @@ function UserForm() {
           placeholder="Last Name"
           disabled={disabledMap.lastName}
           readOnly={readOnlyMap.lastName}
-          required={requiredMap.lastName}
+          // validation handled by schema
         />
       )}
 
@@ -119,7 +118,7 @@ function UserForm() {
         placeholder="Email"
         disabled={disabledMap.email}
         readOnly={readOnlyMap.email}
-        required={requiredMap.email}
+        // validation handled by schema
       />
 
       {/* Phone - multiple flag controls */}
@@ -129,7 +128,7 @@ function UserForm() {
           placeholder="Phone"
           disabled={disabledMap.phone}
           readOnly={readOnlyMap.phone}
-          required={requiredMap.phone}
+          // validation handled by schema
         />
       )}
     </form>
@@ -174,9 +173,7 @@ The library can dynamically transform your schema based on flag values:
 
 ```tsx
 const dynamicSchema = z.object({
-  username: z.string().min(3).meta({
-    requiredFlag: "username-required",
-  }),
+  username: z.string().min(3),
 
   role: z.enum(["user", "admin"]).meta({
     flag: "show-role",
@@ -189,7 +186,6 @@ const dynamicSchema = z.object({
 });
 
 const flags = {
-  "username-required": true,
   "show-role": true,
   "hide-theme": false,
   "default-theme": "dark", // This becomes the default value
@@ -201,7 +197,6 @@ const { schema: transformedSchema, defaultValueMap } = useLDFlagSchema({
 });
 
 // transformedSchema is now modified based on flag values
-// - username is required when flag is true
 // - role visibility controlled by flag
 // - theme defaults to 'dark' (from flag value)
 
@@ -210,7 +205,7 @@ console.log(defaultValueMap.theme); // "dark"
 console.log(defaultValueMap.username); // undefined (no defaultValueFlag)
 ```
 
-> **🚀 Coming Soon**: Advanced features like dynamic min/max values, dynamic enum options, and more schema transformations are planned for future releases.
+> **🚀 Coming Soon**: Validation-based flags such as minLength, maxLength, minValue, maxValue, and required toggling; dynamic enum options; and more schema transformations.
 
 ### Override Flags
 
@@ -322,7 +317,6 @@ type FlagValue =
   visibilityMap: Record<SchemaKeys<T>, boolean>; // Field visibility states
   disabledMap: Record<SchemaKeys<T>, boolean>; // Field disabled states
   readOnlyMap: Record<SchemaKeys<T>, boolean>; // Field readonly states
-  requiredMap: Record<SchemaKeys<T>, boolean>; // Field required states
   defaultValueMap: Record<SchemaKeys<T>, any>; // Dynamic default values
   schema: T; // Dynamically modified schema
 }
@@ -445,23 +439,9 @@ const { readOnlyMap } = useLDFlagSchema({ schema, flags });
 <input name="userId" readOnly={readOnlyMap.userId} />;
 ```
 
-### **4. `requiredFlag` (Validation Control)**
+### ⚠️ Validation Flags
 
-Controls whether a field is required for form validation.
-
-```typescript
-const schema = z.object({
-  phone: z.string().optional().meta({
-    requiredFlag: "phone-required",
-  }),
-});
-
-const flags = { "phone-required": true }; // true = required
-const { requiredMap } = useLDFlagSchema({ schema, flags });
-
-// Usage
-<input name="phone" required={requiredMap.phone} />;
-```
+Validation-based flags (e.g., toggling required, minLength, maxLength, minValue, maxValue) are currently not supported. These are planned as part of an upcoming release focused on validation controls.
 
 ### **5. `omitFlag` (Schema Control)**
 
@@ -512,7 +492,7 @@ const schema = z.object({
     flag: "show-admin-fields", // Visibility control
     disabledFlag: "enable-admin-edit", // Interaction control
     readonlyFlag: "readonly-admin-data", // Edit control
-    requiredFlag: "admin-email-required", // Validation control
+    // Validation flags are currently not supported
     defaultValueFlag: "admin-default-email", // Default value control
   }),
 });
@@ -521,7 +501,6 @@ const flags = {
   "show-admin-fields": true, // Show the field
   "enable-admin-edit": true, // Field is enabled (not disabled)
   "readonly-admin-data": false, // Field is editable (not readonly)
-  "admin-email-required": true, // Field is required
   "admin-default-email": "admin@company.com", // Default value
 };
 

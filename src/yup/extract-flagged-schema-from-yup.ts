@@ -45,11 +45,7 @@ export function transformYupSchemaWithValues(
       continue;
     }
 
-    let yupShape = fieldSchema.clone()
-    // required vs notRequired
-    if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'required' in yupShape) {
-      yupShape = flags[meta.requiredFlag as string] ? yupShape.required() : yupShape.notRequired()
-    }
+    let yupShape = fieldSchema.clone();
     // Create a new object to avoid mutating the readonly index signature
     Object.assign(newShape, { [key]: yupShape });
   }
