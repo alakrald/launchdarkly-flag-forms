@@ -1,7 +1,6 @@
 // src/zod/extractFlaggedSchemaFromZod.ts
 import z, { ZodObject, ZodRawShape, ZodTypeAny } from 'zod'
-import { FlaggedFieldSchema, Flags, FlagValue } from '../types/schema'
-import { isNil } from '../utils'
+import { FlaggedFieldSchema, Flags } from '../types/schema'
 
 export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
   zodSchema: ZodObject<T>

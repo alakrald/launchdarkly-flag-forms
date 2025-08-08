@@ -56,7 +56,7 @@ const userSchema = z.object({
   firstName: z.string().min(1, "Required"),
 
   lastName: z.string().min(1, "Required").meta({
-    flag: "show-last-name", // Visibility flag
+    visibilityFlag "show-last-name", // Visibility flag
     label: "Last Name",
   }),
 
@@ -66,7 +66,7 @@ const userSchema = z.object({
   }),
 
   phone: z.string().optional().meta({
-    flag: "show-phone",
+    visibilityFlag "show-phone",
     readonlyFlag: "readonly-phone", // Readonly state flag
     label: "Phone Number",
   }),
@@ -146,7 +146,7 @@ const userSchema = yup.object({
   firstName: yup.string().required("Required"),
 
   lastName: yup.string().required("Required").meta({
-    flag: "show-last-name",
+    visibilityFlag "show-last-name",
     label: "Last Name",
   }),
 
@@ -176,7 +176,7 @@ const dynamicSchema = z.object({
   username: z.string().min(3),
 
   role: z.enum(["user", "admin"]).meta({
-    flag: "show-role",
+    visibilityFlag "show-role",
   }),
 
   theme: z.string().meta({
@@ -489,7 +489,7 @@ You can use multiple flags on the same field for complex control:
 ```typescript
 const schema = z.object({
   adminEmail: z.string().email().meta({
-    flag: "show-admin-fields", // Visibility control
+    visibilityFlag "show-admin-fields", // Visibility control
     disabledFlag: "enable-admin-edit", // Interaction control
     readonlyFlag: "readonly-admin-data", // Edit control
     // Validation flags are currently not supported
@@ -562,7 +562,7 @@ const userRegistrationSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
 
   lastName: z.string().min(2, "Last name must be at least 2 characters").meta({
-    flag: "show-last-name",
+    visibilityFlag "show-last-name",
     label: "Last Name",
   }),
 
@@ -576,19 +576,19 @@ const userRegistrationSchema = z.object({
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .optional()
     .meta({
-      flag: "show-phone-field",
+      visibilityFlag "show-phone-field",
       readonlyFlag: "readonly-phone",
       label: "Phone Number",
     }),
 
   role: z.enum(["Developer", "Designer", "Manager", "Other"]).meta({
-    flag: "show-role-field",
+    visibilityFlag "show-role-field",
     enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"], // Dynamic options
     label: "Role",
   }),
 
   newsletter: z.boolean().optional().meta({
-    flag: "show-newsletter-opt-in",
+    visibilityFlag "show-newsletter-opt-in",
     defaultValue: true,
     label: "Subscribe to Newsletter",
   }),
@@ -794,7 +794,7 @@ const userRegistrationSchema = yup.object({
     .min(2, "Last name must be at least 2 characters")
     .required()
     .meta({
-      flag: "show-last-name",
+      visibilityFlag "show-last-name",
       label: "Last Name",
     }),
 
@@ -807,7 +807,7 @@ const userRegistrationSchema = yup.object({
     .string()
     .matches(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .meta({
-      flag: "show-phone-field",
+      visibilityFlag "show-phone-field",
       readonlyFlag: "readonly-phone",
       label: "Phone Number",
     }),
@@ -817,13 +817,13 @@ const userRegistrationSchema = yup.object({
     .oneOf(["Developer", "Designer", "Manager", "Other"])
     .required()
     .meta({
-      flag: "show-role-field",
+      visibilityFlag "show-role-field",
       enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
       label: "Role",
     }),
 
   newsletter: yup.boolean().meta({
-    flag: "show-newsletter-opt-in",
+    visibilityFlag "show-newsletter-opt-in",
     defaultValue: true,
     label: "Subscribe to Newsletter",
   }),
@@ -916,7 +916,7 @@ const userRegistrationSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
 
   lastName: z.string().min(2, "Last name must be at least 2 characters").meta({
-    flag: "show-last-name",
+    visibilityFlag "show-last-name",
     label: "Last Name",
   }),
 
@@ -930,13 +930,13 @@ const userRegistrationSchema = z.object({
     .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .optional()
     .meta({
-      flag: "show-phone-field",
+      visibilityFlag "show-phone-field",
       readonlyFlag: "readonly-phone",
       label: "Phone Number",
     }),
 
   role: z.enum(["Developer", "Designer", "Manager", "Other"]).meta({
-    flag: "show-role-field",
+    visibilityFlag "show-role-field",
     enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
     label: "Role",
   }),
@@ -1190,7 +1190,7 @@ const userRegistrationSchema = yup.object({
     .min(2, "Last name must be at least 2 characters")
     .required()
     .meta({
-      flag: "show-last-name",
+      visibilityFlag "show-last-name",
       label: "Last Name",
     }),
 
@@ -1203,7 +1203,7 @@ const userRegistrationSchema = yup.object({
     .string()
     .matches(/^\+?[1-9]\d{1,14}$/, "Invalid phone number")
     .meta({
-      flag: "show-phone-field",
+      visibilityFlag "show-phone-field",
       readonlyFlag: "readonly-phone",
       label: "Phone Number",
     }),
@@ -1213,7 +1213,7 @@ const userRegistrationSchema = yup.object({
     .oneOf(["Developer", "Designer", "Manager", "Other"])
     .required()
     .meta({
-      flag: "show-role-field",
+      visibilityFlag "show-role-field",
       enumValues: ["Developer", "Designer", "Manager", "Other", "Intern"],
       label: "Role",
     }),
