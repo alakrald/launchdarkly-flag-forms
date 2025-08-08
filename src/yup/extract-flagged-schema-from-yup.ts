@@ -18,6 +18,7 @@ export function extractFlaggedSchemaFromYup(
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
+      omitFlag: meta.omitFlag,
       defaultValueFlag: meta.defaultValueFlag,
     } as FlaggedFieldSchema;
   });
@@ -47,7 +48,7 @@ export function transformYupSchemaWithValues(
     let yupShape = fieldSchema.clone()
     // required vs notRequired
     if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'required' in yupShape) {
-      yupShape = flags[meta.requiredFlag] ? yupShape.required() : yupShape.notRequired()
+      yupShape = flags[meta.requiredFlag as string] ? yupShape.required() : yupShape.notRequired()
     }
     // default override
     if (meta.defaultValueFlag && !isNil(flags[meta.defaultValueFlag as string]) && 'default' in yupShape) {

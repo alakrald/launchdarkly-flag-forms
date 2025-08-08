@@ -14,6 +14,7 @@ export function extractFlaggedSchemaFromZod<T extends ZodRawShape>(
       disabledFlag: meta.disabledFlag,
       readonlyFlag: meta.readonlyFlag,
       requiredFlag: meta.requiredFlag,
+      omitFlag: meta.omitFlag,
       defaultValueFlag: meta.defaultValueFlag,
     } as FlaggedFieldSchema;
   });
@@ -38,9 +39,16 @@ export function transformZodSchemaWithValues<T extends ZodRawShape>(
     }
     let zodShape = fieldSchema;
     // required/optional
-    if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string]) && 'optional' in zodShape) {
-      if (!flags[meta.requiredFlag as string]) {
-        zodShape = (zodShape as any).optional();
+    if (meta.requiredFlag && !isNil(flags[meta.requiredFlag as string])) {
+      const shouldBeRequired = !!flags[meta.requiredFlag as string]
+      const isCurrentlyOptional = (zodShape as any)?._def?.typeName === 'ZodOptional'
+
+      if (shouldBeRequired && isCurrentlyOptional) {
+        // Make required by unwrapping ZodOptional
+        zodShape = (zodShape as any).unwrap ? (zodShape as any).unwrap() : (zodShape as any)._def.innerType
+      } else if (!shouldBeRequired && !isCurrentlyOptional) {
+        // Make optional by wrapping
+        zodShape = (zodShape as any).optional()
       }
     }
     // default override

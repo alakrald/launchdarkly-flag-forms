@@ -1,6 +1,6 @@
 {
   "name": "launchdarkly-flag-form",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A minimal React hook-based library to control form field visibility and state using feature flags.",
   "main": "dist/launchdarkly-flag-form-lib.cjs.js",
   "module": "dist/launchdarkly-flag-form-lib.es.js",
@@ -43,7 +43,8 @@
     "vite": "^5.0.0",
     "vite-plugin-dts": "^3.0.0",
     "yup": "^1.7.0",
-    "zod": "^4.0.15"
+    "zod": "^4.0.15",
+    "@types/babel__traverse": "^7.28.0"
   },
   "keywords": [
     "react",
